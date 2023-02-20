@@ -188,10 +188,10 @@ export function getBeaconBlockApi({
         signedBlock = beaconBlock;
         // add this blobs to the map for access & broadcasting in publishBlock
         const {blockHash} = signedBlindedBlock.message.body.executionPayloadHeader;
-        chain.producedBlobsSidecarCache.set(toHexString(blockHash), blobsSidecar);
+        chain.producedBlobSidecarsCache.set(toHexString(blockHash), blobsSidecar);
         // TODO: Do we need to prune here ? prune will anyway be called in local execution flow
         // pruneSetToMax(
-        //   chain.producedBlobsSidecarCache,
+        //   chain.producedBlobSidecarsCache,
         //   chain.opts.maxCachedBlobsSidecar ?? DEFAULT_MAX_CACHED_BLOBS_SIDECAR
         // );
       } else {
@@ -245,16 +245,16 @@ export function getBeaconBlockApi({
 
       const blockRoot = config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
 
-      let blobSidecar = await db.blobsSidecar.get(blockRoot);
-      if (!blobsSidecar) {
-        blobsSidecar = await db.blobsSidecarArchive.get(block.message.slot);
-        if (!blobsSidecar) {
+      let blobSidecar = await db.blobSidecar.get(blockRoot);
+      if (!blobSidecar) {
+        blobSidecar = await db.blobsSidecarArchive.get(block.message.slot);
+        if (!blobSidecar) {
           throw Error("Not found in db")
         }
       }
       return {
         executionOptimistic,
-        data: blobsSidecar,
+        data: blobSidecar,
       };
     },
   };

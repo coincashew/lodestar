@@ -120,7 +120,7 @@ export class BeaconChain implements IBeaconChain {
   readonly checkpointBalancesCache: CheckpointBalancesCache;
   // TODO DENEB: Prune data structure every time period, for both old entries
   /** Map keyed by executionPayload.blockHash of the block for those blobs */
-  readonly producedBlobsSidecarCache = new Map<RootHex, deneb.BlobSidecar[]>();
+  readonly producedBlobSidecarsCache = new Map<RootHex, deneb.BlobSidecar[]>();
   readonly opts: IChainOptions;
 
   protected readonly blockProcessor: BlockProcessor;
@@ -399,15 +399,16 @@ export class BeaconChain implements IBeaconChain {
     // publishing the blinded block's full version
     if (blobs.type === BlobsResultType.produced) {
       // TODO DENEB: Prune data structure for max entries
-      this.producedBlobsSidecarCache.set(blobs.blockHash, {
+      const blobSidecars = this.producedBlobSidecarsCache.get(blobs.blockHash) ?? [];
+      this.producedBlobSidecarsCache.set(blobs.blockHash, blobSidecars.push({
         // TODO DENEB: Optimize, hashing the full block is not free.
         beaconBlockRoot: this.config.getForkTypes(block.slot).BeaconBlock.hashTreeRoot(block),
         beaconBlockSlot: block.slot,
         blobs: blobs.blobs,
         kzgAggregatedProof: ckzg.computeAggregateKzgProof(blobs.blobs),
-      });
+      }));
       pruneSetToMax(
-        this.producedBlobsSidecarCache,
+        this.producedBlobSidecarsCache,
         this.opts.maxCachedBlobsSidecar ?? DEFAULT_MAX_CACHED_BLOBS_SIDECAR
       );
     }
@@ -427,12 +428,12 @@ export class BeaconChain implements IBeaconChain {
    */
   getBlobsSidecar(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecar[] {
     const blockHash = toHex(beaconBlock.body.executionPayload.blockHash);
-    const blobsSidecar = this.producedBlobsSidecarCache.get(blockHash);
-    if (!blobsSidecar) {
+    const blobSidecars = this.producedBlobSidecarsCache.get(blockHash);
+    if (!blobSidecars) {
       throw Error(`No blobsSidecar for executionPayload.blockHash ${blockHash}`);
     }
 
-    return blobsSidecar;
+    return blobSidecars;
   }
 
   async processBlock(block: BlockInput, opts?: ImportBlockOpts): Promise<void> {
@@ -649,10 +650,10 @@ export class BeaconChain implements IBeaconChain {
     }
 
     // Prune old blobsSidecar for block production, those are only useful on their slot
-    if (this.config.getForkSeq(slot) >= ForkSeq.deneb && this.producedBlobsSidecarCache.size > 0) {
-      for (const [key, blobsSidecar] of this.producedBlobsSidecarCache) {
+    if (this.config.getForkSeq(slot) >= ForkSeq.deneb && this.producedBlobSidecarsCache.size > 0) {
+      for (const [key, blobsSidecar] of this.producedBlobSidecarsCache) {
         if (slot > blobsSidecar.beaconBlockSlot + MAX_RETAINED_SLOTS_CACHED_BLOBS_SIDECAR) {
-          this.producedBlobsSidecarCache.delete(key);
+          this.producedBlobSidecarsCache.delete(key);
         }
       }
     }

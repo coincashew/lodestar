@@ -123,7 +123,7 @@ function maybeValidateBlobs(
   // TODO Deneb: Make switch verify it's exhaustive
   switch (blockInput.type) {
     case BlockInputType.postDeneb: {
-      if (opts.validBlobsSidecar) {
+      if (opts.validBlobSidecars) {
         return DataAvailableStatus.available;
       }
 
@@ -132,7 +132,7 @@ function maybeValidateBlobs(
       const {blobKzgCommitments} = (block as deneb.SignedBeaconBlock).message.body;
       const beaconBlockRoot = config.getForkTypes(blockSlot).BeaconBlock.hashTreeRoot(block.message);
       // TODO Deneb: This function throws un-typed errors
-      validateBlobsSidecar(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs);
+      validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs);
 
       return DataAvailableStatus.available;
     }

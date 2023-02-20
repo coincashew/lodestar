@@ -70,7 +70,7 @@ export async function importBlock(
     const {blobs} = blockInput;
     // NOTE: Old blobs are pruned on archive
     await this.db.blobSidecars.add(blobs);
-    this.logger.debug("Persisted blobsSidecar to hot DB", {
+    this.logger.debug("Persisted blobSidecars to hot DB", {
       blobsLen: blobs.blobs.length,
       slot: blobs.beaconBlockSlot,
       root: toHexString(blobs.beaconBlockRoot),

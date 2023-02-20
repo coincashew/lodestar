@@ -174,7 +174,7 @@ async function migrateBlobSidecarsFromHotToColdDb(
 
     // put to blockArchive db and delete block db
     await Promise.all([
-      db.blobSidecarsArchive.batchPutBinary(canonicalBlobsSidecarEntries),
+      db.blobSidecarsArchive.batchPutBinary(canonicalBlobSidecarsEntries),
       db.blobSidecars.batchDelete(canonicalBlocks.map((block) => block.root)),
     ]);
   }

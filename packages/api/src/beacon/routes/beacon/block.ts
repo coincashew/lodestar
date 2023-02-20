@@ -192,11 +192,11 @@ export type Api = {
    * @param blockId Block identifier.
    * Can be one of: "head" (canonical head in node's view), "genesis", "finalized", \<slot\>, \<hex encoded blockRoot with 0x prefix\>.
    */
-  getBlobsSidecar(
+  getBlobSidecar(
     blockId: BlockId
   ): Promise<
     ApiClientResponse<{
-      [HttpStatusCode.OK]: {executionOptimistic: ExecutionOptimistic; data: deneb.BlobsSidecar};
+      [HttpStatusCode.OK]: {executionOptimistic: ExecutionOptimistic; data: deneb.BlobSidecar};
     }>
   >;
 };
@@ -213,7 +213,7 @@ export const routesData: RoutesData<Api> = {
   getBlockRoot: {url: "/eth/v1/beacon/blocks/{block_id}/root", method: "GET"},
   publishBlock: {url: "/eth/v1/beacon/blocks", method: "POST"},
   publishBlindedBlock: {url: "/eth/v1/beacon/blinded_blocks", method: "POST"},
-  getBlobsSidecar: {url: "/eth/v1/beacon/blobs_sidecars/{block_id}", method: "GET"},
+  getBlobSidecar: {url: "/eth/v1/beacon/blobs_sidecars/{block_id}", method: "GET"},
 };
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -229,7 +229,7 @@ export type ReqTypes = {
   getBlockRoot: BlockIdOnlyReq;
   publishBlock: {body: unknown};
   publishBlindedBlock: {body: unknown};
-  getBlobsSidecar: BlockIdOnlyReq;
+  getBlobSidecar: BlockIdOnlyReq;
 };
 
 export function getReqSerializers(config: ChainForkConfig): ReqSerializers<Api, ReqTypes> {
@@ -272,7 +272,7 @@ export function getReqSerializers(config: ChainForkConfig): ReqSerializers<Api, 
     getBlockRoot: blockIdOnlyReq,
     publishBlock: reqOnlyBody(AllForksSignedBeaconBlock, Schema.Object),
     publishBlindedBlock: reqOnlyBody(AllForksSignedBlindedBeaconBlock, Schema.Object),
-    getBlobsSidecar: blockIdOnlyReq,
+    getBlobSidecar: blockIdOnlyReq,
   };
 }
 
@@ -294,6 +294,6 @@ export function getReturnTypes(): ReturnTypes<Api> {
     getBlockHeader: ContainerDataExecutionOptimistic(BeaconHeaderResType),
     getBlockHeaders: ContainerDataExecutionOptimistic(ArrayOf(BeaconHeaderResType)),
     getBlockRoot: ContainerDataExecutionOptimistic(RootContainer),
-    getBlobsSidecar: ContainerDataExecutionOptimistic(ssz.deneb.BlobsSidecar),
+    getBlobSidecar: ContainerDataExecutionOptimistic(ssz.deneb.BlobSidecar),
   };
 }

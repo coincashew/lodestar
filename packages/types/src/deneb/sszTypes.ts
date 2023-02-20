@@ -3,7 +3,7 @@ import {
   HISTORICAL_ROOTS_LIMIT,
   FIELD_ELEMENTS_PER_BLOB,
   MAX_BLOBS_PER_BLOCK,
-  MAX_REQUEST_BLOCKS,
+  MAX_REQUEST_BLOB_SIDECARS,
   BYTES_PER_FIELD_ELEMENT,
   BLOCK_BODY_EXECUTION_PAYLOAD_DEPTH as EXECUTION_PAYLOAD_DEPTH,
   EPOCHS_PER_SYNC_COMMITTEE_PERIOD,
@@ -83,15 +83,15 @@ export const PolynomialAndCommitment = new ContainerType(
 // ReqResp types
 // =============
 
-export const BlobsSidecarsByRangeRequest = new ContainerType(
+export const BlobSidecarsByRangeRequest = new ContainerType(
   {
     startSlot: Slot,
     count: UintNum64,
   },
-  {typeName: "BlobsSidecarsByRangeRequest", jsonCase: "eth2"}
+  {typeName: "BlobSidecarsByRangeRequest", jsonCase: "eth2"}
 );
 
-export const BeaconBlockAndBlobsSidecarByRootRequest = new ListCompositeType(Root, MAX_REQUEST_BLOCKS);
+export const BlobSidecarsByRootRequest = new ListCompositeType(Root, MAX_REQUEST_BLOB_SIDECARS*MAX_BLOBS_PER_BLOCK);
 
 // Beacon Chain types
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/eip4844/beacon-chain.md#containers

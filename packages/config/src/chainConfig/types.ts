@@ -64,8 +64,6 @@ export type ChainConfig = {
   DEPOSIT_CONTRACT_ADDRESS: Uint8Array;
 
   // DENEB
-  MAX_REQUEST_BLOCKS_DENEB: number;
-  MAX_REQUEST_BLOB_SIDECARS: number;
   /** The minimum epoch range over which a node must serve blobs sidecars */
   MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS: number;
 };
@@ -122,8 +120,6 @@ export const chainConfigTypes: SpecTypes<ChainConfig> = {
   DEPOSIT_CONTRACT_ADDRESS: "bytes",
 
   // Blobs
-  MAX_REQUEST_BLOCKS_DENEB: "number",
-  MAX_REQUEST_BLOB_SIDECARS: "number",
   MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS: "number",
 };
 

@@ -13,8 +13,8 @@ export type Polynomial = ValueOf<typeof ssz.Polynomial>;
 export type PolynomialAndCommitment = ValueOf<typeof ssz.PolynomialAndCommitment>;
 export type BLSFieldElement = ValueOf<typeof ssz.BLSFieldElement>;
 
-export type BlobsSidecarsByRangeRequest = ValueOf<typeof ssz.BlobsSidecarsByRangeRequest>;
-export type BeaconBlockAndBlobsSidecarByRootRequest = ValueOf<typeof ssz.BeaconBlockAndBlobsSidecarByRootRequest>;
+export type BlobSidecarsByRangeRequest = ValueOf<typeof ssz.BlobSidecarsByRangeRequest>;
+export type BlobSidecarsByRootRequest = ValueOf<typeof ssz.BlobSidecarsByRootRequest>;
 
 export type ExecutionPayload = ValueOf<typeof ssz.ExecutionPayload>;
 export type ExecutionPayloadHeader = ValueOf<typeof ssz.ExecutionPayloadHeader>;

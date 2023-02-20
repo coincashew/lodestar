@@ -15,7 +15,19 @@ import {ssz as altairSsz} from "../altair/index.js";
 import {ssz as capellaSsz} from "../capella/index.js";
 import {ssz as bellatrixSsz} from "../bellatrix/index.js";
 
-const {UintNum64, Slot, Root, BLSSignature, UintBn256, Bytes32, Bytes48, Bytes96, BLSPubkey,BlobIndex,ValidatorIndex} = primitiveSsz;
+const {
+  UintNum64,
+  Slot,
+  Root,
+  BLSSignature,
+  UintBn256,
+  Bytes32,
+  Bytes48,
+  Bytes96,
+  BLSPubkey,
+  BlobIndex,
+  ValidatorIndex,
+} = primitiveSsz;
 
 // Polynomial commitments
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/eip4844/polynomial-commitments.md
@@ -134,7 +146,7 @@ export const SignedBeaconBlock = new ContainerType(
   {typeName: "SignedBeaconBlock", jsonCase: "eth2"}
 );
 
-export const BlobsSidecar = new ContainerType(
+export const BlobSidecar = new ContainerType(
   {
     blockRoot: Root,
     index: BlobIndex,
@@ -145,12 +157,12 @@ export const BlobsSidecar = new ContainerType(
     kzgCommitment: KZGCommitment,
     kzgProof: KZGProof,
   },
-  {typeName: "BlobsSidecar", jsonCase: "eth2"}
+  {typeName: "BlobSidecar", jsonCase: "eth2"}
 );
 
 export const SignedBlobSidecar = new ContainerType(
   {
-    message: BlobsSidecar,
+    message: BlobSidecar,
     signature: BLSSignature,
   },
   {typeName: "SignedBlobSidecar", jsonCase: "eth2"}
@@ -159,15 +171,16 @@ export const SignedBlobSidecar = new ContainerType(
 export const SignedBeaconBlockAndBlobsSidecar = new ContainerType(
   {
     beaconBlock: SignedBeaconBlock,
-    blobsSidecar: BlobsSidecar,
+    blobsSidecar: BlobSidecar,
   },
   {typeName: "SignedBeaconBlockAndBlobsSidecar", jsonCase: "eth2"}
 );
 
-export const BlobIdentifier = new ContainerType({
-  blockRoot: Root,
-  index: BlobIndex
-},
+export const BlobIdentifier = new ContainerType(
+  {
+    blockRoot: Root,
+    index: BlobIndex,
+  },
   {typeName: "BlobIdentifier", jsonCase: "eth2"}
 );
 

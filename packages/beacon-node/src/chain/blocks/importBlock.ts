@@ -69,7 +69,7 @@ export async function importBlock(
   if (blockInput.type === BlockInputType.postDeneb) {
     const {blobs} = blockInput;
     // NOTE: Old blobs are pruned on archive
-    await this.db.blobsSidecar.add(blobs);
+    await this.db.blobSidecars.add(blobs);
     this.logger.debug("Persisted blobsSidecar to hot DB", {
       blobsLen: blobs.blobs.length,
       slot: blobs.beaconBlockSlot,

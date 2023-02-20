@@ -5,7 +5,7 @@ import {Slot, deneb} from "@lodestar/types";
 import {toHexString} from "@lodestar/utils";
 import {BeaconClock} from "../clock/interface.js";
 import {BlockError, BlockErrorCode} from "../errors/index.js";
-import {validateBlobsSidecar} from "../validation/blobsSidecar.js";
+import {validateBlobSidecars} from "../validation/blobSidecars.js";
 import {BlockInput, BlockInputType, ImportBlockOpts} from "./types.js";
 
 /**

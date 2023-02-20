@@ -69,7 +69,7 @@ import {BlockInput} from "./blocks/types.js";
  * Arbitrary constants, blobs should be consumed immediately in the same slot they are produced.
  * A value of 1 would probably be sufficient. However it's sensible to allow some margin if the node overloads.
  */
-const DEFAULT_MAX_CACHED_BLOBS_SIDECAR = 8;
+const DEFAULT_MAX_CACHED_BLOB_SIDECARS = 8;
 const MAX_RETAINED_SLOTS_CACHED_BLOBS_SIDECAR = 8;
 
 export class BeaconChain implements IBeaconChain {
@@ -409,7 +409,7 @@ export class BeaconChain implements IBeaconChain {
       }));
       pruneSetToMax(
         this.producedBlobSidecarsCache,
-        this.opts.maxCachedBlobsSidecar ?? DEFAULT_MAX_CACHED_BLOBS_SIDECAR
+        this.opts.maxCachedBlobSidecars ?? DEFAULT_MAX_CACHED_BLOB_SIDECARS
       );
     }
 
@@ -418,19 +418,19 @@ export class BeaconChain implements IBeaconChain {
 
   /**
    * https://github.com/ethereum/consensus-specs/blob/dev/specs/eip4844/validator.md#sidecar
-   * def get_blobs_sidecar(block: BeaconBlock, blobs: Sequence[Blob]) -> BlobsSidecar:
-   *   return BlobsSidecar(
+   * def get_blobs_sidecar(block: BeaconBlock, blobs: Sequence[Blob]) -> BlobSidecars:
+   *   return BlobSidecars(
    *       beacon_block_root=hash_tree_root(block),
    *       beacon_block_slot=block.slot,
    *       blobs=blobs,
    *       kzg_aggregated_proof=compute_proof_from_blobs(blobs),
    *   )
    */
-  getBlobsSidecar(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecar[] {
+  getBlobSidecars(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecar[] {
     const blockHash = toHex(beaconBlock.body.executionPayload.blockHash);
     const blobSidecars = this.producedBlobSidecarsCache.get(blockHash);
     if (!blobSidecars) {
-      throw Error(`No blobsSidecar for executionPayload.blockHash ${blockHash}`);
+      throw Error(`No blobSidecars for executionPayload.blockHash ${blockHash}`);
     }
 
     return blobSidecars;
@@ -649,10 +649,10 @@ export class BeaconChain implements IBeaconChain {
       });
     }
 
-    // Prune old blobsSidecar for block production, those are only useful on their slot
+    // Prune old blobSidecars for block production, those are only useful on their slot
     if (this.config.getForkSeq(slot) >= ForkSeq.deneb && this.producedBlobSidecarsCache.size > 0) {
-      for (const [key, blobsSidecar] of this.producedBlobSidecarsCache) {
-        if (slot > blobsSidecar.beaconBlockSlot + MAX_RETAINED_SLOTS_CACHED_BLOBS_SIDECAR) {
+      for (const [key, blobSidecars] of this.producedBlobSidecarsCache) {
+        if (slot > blobSidecars.beaconBlockSlot + MAX_RETAINED_SLOTS_CACHED_BLOBS_SIDECAR) {
           this.producedBlobSidecarsCache.delete(key);
         }
       }

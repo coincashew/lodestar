@@ -111,7 +111,7 @@ export interface IBeaconChain {
    */
   getCanonicalBlockAtSlot(slot: Slot): Promise<allForks.SignedBeaconBlock | null>;
 
-  getBlobsSidecar(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecar[];
+  getBlobSidecars(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecar[];
 
   produceBlock(blockAttributes: BlockAttributes): Promise<{block: allForks.BeaconBlock; blockValue: Wei}>;
   produceBlindedBlock(blockAttributes: BlockAttributes): Promise<{block: allForks.BlindedBeaconBlock; blockValue: Wei}>;

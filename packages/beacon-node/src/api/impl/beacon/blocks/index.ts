@@ -221,7 +221,7 @@ export function getBeaconBlockApi({
           ? getBlockInput.postDeneb(
               config,
               signedBlock,
-              chain.getBlobsSidecar(signedBlock.message as deneb.BeaconBlock)
+              chain.getBlobSidecars(signedBlock.message as deneb.BeaconBlock)
             )
           : getBlockInput.preDeneb(config, signedBlock);
 
@@ -247,7 +247,7 @@ export function getBeaconBlockApi({
 
       let blobSidecar = await db.blobSidecar.get(blockRoot);
       if (!blobSidecar) {
-        blobSidecar = await db.blobsSidecarArchive.get(block.message.slot);
+        blobSidecar = await db.blobSidecarsArchive.get(block.message.slot);
         if (!blobSidecar) {
           throw Error("Not found in db")
         }

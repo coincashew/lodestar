@@ -3,7 +3,7 @@ import {PeerId} from "@libp2p/interface-peer-id";
 import {Multiaddr} from "@multiformats/multiaddr";
 import {BeaconConfig} from "@lodestar/config";
 import {Logger, sleep} from "@lodestar/utils";
-import {ATTESTATION_SUBNET_COUNT, ForkName, ForkSeq, SYNC_COMMITTEE_SUBNET_COUNT} from "@lodestar/params";
+import {ATTESTATION_SUBNET_COUNT, ForkName, ForkSeq, SYNC_COMMITTEE_SUBNET_COUNT,MAX_BLOBS_PER_BLOCK} from "@lodestar/params";
 import {SignableENR} from "@chainsafe/discv5";
 import {computeEpochAtSlot, computeTimeAtSlot} from "@lodestar/state-transition";
 import {deneb, Epoch, phase0, allForks} from "@lodestar/types";
@@ -514,13 +514,14 @@ export class Network implements INetwork {
       {type: GossipType.voluntary_exit},
       {type: GossipType.proposer_slashing},
       {type: GossipType.attester_slashing},
+      {type: GossipType.beacon_block},
     ];
 
-    // After Deneb only track beacon_block_and_blobs_sidecar topic
-    if (ForkSeq[fork] < ForkSeq.deneb) {
-      topics.push({type: GossipType.beacon_block});
-    } else {
-      topics.push({type: GossipType.beacon_block_and_blobs_sidecar});
+    // After Deneb also track blob_sidecar_{index}
+    if (ForkSeq[fork] >= ForkSeq.deneb) {
+      for(let index=0;index<MAX_BLOBS_PER_BLOCK;i++){
+      topics.push({type: GossipType.blobs_sidecar,index});        
+      }
     }
 
     // capella

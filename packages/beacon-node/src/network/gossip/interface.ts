@@ -13,7 +13,7 @@ import {JobItemQueue} from "../../util/queue/index.js";
 
 export enum GossipType {
   beacon_block = "beacon_block",
-  beacon_block_and_blobs_sidecar = "beacon_block_and_blobs_sidecar",
+  blobs_sidecar = "blobs_sidecar",
   beacon_aggregate_and_proof = "beacon_aggregate_and_proof",
   beacon_attestation = "beacon_attestation",
   voluntary_exit = "voluntary_exit",
@@ -41,7 +41,7 @@ export interface IGossipTopic {
 
 export type GossipTopicTypeMap = {
   [GossipType.beacon_block]: {type: GossipType.beacon_block};
-  [GossipType.beacon_block_and_blobs_sidecar]: {type: GossipType.beacon_block_and_blobs_sidecar};
+  [GossipType.blobs_sidecar]: {type: GossipType.blobs_sidecar, index: number};
   [GossipType.beacon_aggregate_and_proof]: {type: GossipType.beacon_aggregate_and_proof};
   [GossipType.beacon_attestation]: {type: GossipType.beacon_attestation; subnet: number};
   [GossipType.voluntary_exit]: {type: GossipType.voluntary_exit};

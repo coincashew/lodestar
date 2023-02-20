@@ -11,7 +11,7 @@ export enum BlockInputType {
 
 export type BlockInput =
   | {type: BlockInputType.preDeneb; block: allForks.SignedBeaconBlock}
-  | {type: BlockInputType.postDeneb; block: allForks.SignedBeaconBlock; blobs: deneb.BlobsSidecar};
+  | {type: BlockInputType.postDeneb; block: allForks.SignedBeaconBlock; blobs: deneb.BlobsSidecar[]};
 
 export function blockRequiresBlobs(config: ChainForkConfig, blockSlot: Slot, clockSlot: Slot): boolean {
   return (

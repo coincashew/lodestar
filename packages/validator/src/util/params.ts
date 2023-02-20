@@ -129,8 +129,9 @@ function getSpecCriticalParams(localConfig: ChainConfig): Record<keyof ConfigWit
     DEPOSIT_CONTRACT_ADDRESS: true,
 
     // Blobs
-    MAX_REQUEST_BLOBS_SIDECARS: denebForkRelevant,
-    MIN_EPOCHS_FOR_BLOBS_SIDECARS_REQUESTS: denebForkRelevant,
+    MAX_REQUEST_BLOCKS_DENEB: denebForkRelevant,
+    MAX_REQUEST_BLOB_SIDECARS: denebForkRelevant,
+    MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS: denebForkRelevant,
 
     // # Phase0Preset
     /////////////////

@@ -1,5 +1,6 @@
 import bls from "@chainsafe/bls";
 import {CoordType} from "@chainsafe/bls/types";
+import {ChainForkConfig} from "@lodestar/config";
 import {deneb, Root, ssz} from "@lodestar/types";
 import {bytesToBigInt} from "@lodestar/utils";
 import {BYTES_PER_FIELD_ELEMENT, FIELD_ELEMENTS_PER_BLOB} from "@lodestar/params";
@@ -8,70 +9,56 @@ import {BlobsSidecarError, BlobsSidecarErrorCode} from "../errors/blobsSidecarEr
 import {GossipAction} from "../errors/gossipValidation.js";
 import {byteArrayEquals} from "../../util/bytes.js";
 import {ckzg} from "../../util/kzg.js";
+import {IBeaconChain} from "../interface.js";
 
 const BLS_MODULUS = BigInt("52435875175126190479447740508185965837690552500527637822603658699938581184513");
 
 export function validateGossipBlobsSidecar(
+  config: ChainForkConfig,
+  chain: IBeaconChain,  
   signedBlock: deneb.SignedBeaconBlock,
-  blobsSidecar: deneb.BlobsSidecar
+  blobsSidecar: deneb.BlobSidecar,
+  index: number,
 ): void {
   const block = signedBlock.message;
 
   // Spec: https://github.com/ethereum/consensus-specs/blob/4cb6fd1c8c8f190d147d15b182c2510d0423ec61/specs/eip4844/p2p-interface.md#beacon_block_and_blobs_sidecar
-  // [REJECT] The KZG commitments of the blobs are all correctly encoded compressed BLS G1 Points.
-  // -- i.e. all(bls.KeyValidate(commitment) for commitment in block.body.blob_kzg_commitments)
-  const {blobKzgCommitments} = block.body;
-  for (let i = 0; i < blobKzgCommitments.length; i++) {
-    if (!blsKeyValidate(blobKzgCommitments[i])) {
-      throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_KZG, kzgIdx: i});
-    }
-  }
-
-  // [REJECT] The KZG commitments correspond to the versioned hashes in the transactions list.
-  // -- i.e. verify_kzg_commitments_against_transactions(block.body.execution_payload.transactions, block.body.blob_kzg_commitments)
-  if (
-    !verifyKzgCommitmentsAgainstTransactions(block.body.executionPayload.transactions, block.body.blobKzgCommitments)
-  ) {
-    throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_KZG_TXS});
-  }
 
   // [IGNORE] the sidecar.beacon_block_slot is for the current slot (with a MAXIMUM_GOSSIP_CLOCK_DISPARITY allowance)
   // -- i.e. sidecar.beacon_block_slot == block.slot.
-  if (blobsSidecar.beaconBlockSlot !== block.slot) {
+  if (blobsSidecar.slot !== block.slot) {
     throw new BlobsSidecarError(GossipAction.IGNORE, {
       code: BlobsSidecarErrorCode.INCORRECT_SLOT,
-      blobSlot: blobsSidecar.beaconBlockSlot,
       blockSlot: block.slot,
+      blobSlot: blobsSidecar.slot,
+      blobIdx: blobsSidecar.index
     });
   }
 
   // [REJECT] the sidecar.blobs are all well formatted, i.e. the BLSFieldElement in valid range (x < BLS_MODULUS).
-  for (let i = 0; i < blobsSidecar.blobs.length; i++) {
-    if (!blobIsValidRange(blobsSidecar.blobs[i])) {
-      throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_BLOB, blobIdx: i});
+    if (!blobIsValidRange(blobsSidecar.blob)) {
+      throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_BLOB, blobIdx: blobsSidecar.index});
     }
-  }
 
   // [REJECT] The KZG proof is a correctly encoded compressed BLS G1 Point
   // -- i.e. blsKeyValidate(blobs_sidecar.kzg_aggregated_proof)
-  if (!blsKeyValidate(blobsSidecar.kzgAggregatedProof)) {
-    throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_KZG_PROOF});
+  if (!blsKeyValidate(blobsSidecar.kzgProof)) {
+    throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_KZG_PROOF,blobIdx: blobsSidecar.index});
   }
 
   // [REJECT] The KZG commitments in the block are valid against the provided blobs sidecar. -- i.e.
   // validate_blobs_sidecar(block.slot, hash_tree_root(block), block.body.blob_kzg_commitments, sidecar)
-  validateBlobsSidecar(
-    block.slot,
-    ssz.bellatrix.BeaconBlock.hashTreeRoot(block),
-    block.body.blobKzgCommitments,
-    blobsSidecar
+  validateBlobs(
+    [blobsSidecar.kzgCommitment],
+    [blobsSidecar.blob],
+    [blobsSidecar.kzgProof]
   );
 }
 
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/eip4844/beacon-chain.md#validate_blobs_sidecar
-export function validateBlobsSidecar(
+export function validateBlobs(
   expectedKzgCommitments: deneb.KZGCommitment[],
-  blobs: deneb.BlobsSidecar[],
+  blobs: deneb.Blob[],
   proofs: deneb.KZGProof[],
 ): void {
   // assert len(expected_kzg_commitments) == len(blobs)

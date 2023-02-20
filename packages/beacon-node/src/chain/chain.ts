@@ -120,7 +120,7 @@ export class BeaconChain implements IBeaconChain {
   readonly checkpointBalancesCache: CheckpointBalancesCache;
   // TODO DENEB: Prune data structure every time period, for both old entries
   /** Map keyed by executionPayload.blockHash of the block for those blobs */
-  readonly producedBlobsSidecarCache = new Map<RootHex, deneb.BlobsSidecar>();
+  readonly producedBlobsSidecarCache = new Map<RootHex, deneb.BlobSidecar[]>();
   readonly opts: IChainOptions;
 
   protected readonly blockProcessor: BlockProcessor;
@@ -425,7 +425,7 @@ export class BeaconChain implements IBeaconChain {
    *       kzg_aggregated_proof=compute_proof_from_blobs(blobs),
    *   )
    */
-  getBlobsSidecar(beaconBlock: deneb.BeaconBlock): deneb.BlobsSidecar {
+  getBlobsSidecar(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecar[] {
     const blockHash = toHex(beaconBlock.body.executionPayload.blockHash);
     const blobsSidecar = this.producedBlobsSidecarCache.get(blockHash);
     if (!blobsSidecar) {

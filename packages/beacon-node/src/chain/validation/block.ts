@@ -162,6 +162,23 @@ export async function validateGossipBlock(
     throw new BlockGossipError(GossipAction.IGNORE, {code: BlockErrorCode.REPEAT_PROPOSAL, proposerIndex});
   }
 
+  // [REJECT] The KZG commitments of the blobs are all correctly encoded compressed BLS G1 Points.
+  // -- i.e. all(bls.KeyValidate(commitment) for commitment in block.body.blob_kzg_commitments)
+  const {blobKzgCommitments} = block.body;
+  for (let i = 0; i < blobKzgCommitments.length; i++) {
+    if (!blsKeyValidate(blobKzgCommitments[i])) {
+      throw new BlobsSidecarError(GossipAction.REJECT, {code: BlockErrorCode.INVALID_KZG, kzgIdx: i});
+    }
+  }
+
+  // [REJECT] The KZG commitments correspond to the versioned hashes in the transactions list.
+  // -- i.e. verify_kzg_commitments_against_transactions(block.body.execution_payload.transactions, block.body.blob_kzg_commitments)
+  if (
+    !verifyKzgCommitmentsAgainstTransactions(block.body.executionPayload.transactions, block.body.blobKzgCommitments)
+  ) {
+    throw new BlobsSidecarError(GossipAction.REJECT, {code: BlockErrorCode.INVALID_KZG_TXS});
+  }
+
   // Simple implementation of a pending block queue. Keeping the block here recycles the queue logic, and keeps the
   // gossip validation promise without any extra infrastructure.
   // Do the sleep at the end, since regen and signature validation can already take longer than `msToBlockSlot`.

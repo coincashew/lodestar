@@ -56,7 +56,7 @@ export async function beaconBlocksMaybeBlobsByRange(
     // Assuming that the blocks and blobs will come in same sorted order
     for (let i = 0; i < blocks.length; i++) {
       const block = blocks[i];
-      let blobsSidecar: deneb.BlobsSidecar;
+      let blobsSidecar: deneb.BlobSidecar;
 
       if (blobsSidecars[blobSideCarIndex]?.beaconBlockSlot === block.message.slot) {
         blobsSidecar = blobsSidecars[blobSideCarIndex];

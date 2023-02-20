@@ -187,8 +187,8 @@ export type Api = {
     >
   >;
   /**
-   * Get block BlobsSidecar
-   * Retrieves BlobsSidecar included in requested block.
+   * Get block BlobSidecar
+   * Retrieves BlobSidecar included in requested block.
    * @param blockId Block identifier.
    * Can be one of: "head" (canonical head in node's view), "genesis", "finalized", \<slot\>, \<hex encoded blockRoot with 0x prefix\>.
    */

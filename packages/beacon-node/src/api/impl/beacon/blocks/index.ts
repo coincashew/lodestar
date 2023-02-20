@@ -240,21 +240,16 @@ export function getBeaconBlockApi({
       ]);
     },
 
-    async getBlobsSidecar(blockId) {
+    async getBlobSidecar(blockId) {
       const {block, executionOptimistic} = await resolveBlockId(chain.forkChoice, db, blockId);
 
       const blockRoot = config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
 
-      let blobsSidecar = await db.blobsSidecar.get(blockRoot);
+      let blobSidecar = await db.blobsSidecar.get(blockRoot);
       if (!blobsSidecar) {
         blobsSidecar = await db.blobsSidecarArchive.get(block.message.slot);
         if (!blobsSidecar) {
-          blobsSidecar = {
-            beaconBlockRoot: blockRoot,
-            beaconBlockSlot: block.message.slot,
-            blobs: [] as deneb.Blobs,
-            kzgAggregatedProof: ckzg.computeAggregateKzgProof([]),
-          };
+          throw Error("Not found in db")
         }
       }
       return {

@@ -67,7 +67,7 @@ export type GossipTopic = GossipTopicMap[keyof GossipTopicMap];
 
 export type GossipTypeMap = {
   [GossipType.beacon_block]: allForks.SignedBeaconBlock;
-  [GossipType.beacon_block_and_blobs_sidecar]: deneb.SignedBeaconBlockAndBlobsSidecar;
+  [GossipType.blobs_sidecar]: deneb.SignedBlobSidecar;
   [GossipType.beacon_aggregate_and_proof]: phase0.SignedAggregateAndProof;
   [GossipType.beacon_attestation]: phase0.Attestation;
   [GossipType.voluntary_exit]: phase0.SignedVoluntaryExit;
@@ -82,8 +82,8 @@ export type GossipTypeMap = {
 
 export type GossipFnByType = {
   [GossipType.beacon_block]: (signedBlock: allForks.SignedBeaconBlock) => Promise<void> | void;
-  [GossipType.beacon_block_and_blobs_sidecar]: (
-    signedBeaconBlockAndBlobsSidecar: deneb.SignedBeaconBlockAndBlobsSidecar
+  [GossipType.blobs_sidecar]: (
+    signedBlobSidecar: deneb.SignedBlobSidecar
   ) => Promise<void> | void;
   [GossipType.beacon_aggregate_and_proof]: (aggregateAndProof: phase0.SignedAggregateAndProof) => Promise<void> | void;
   [GossipType.beacon_attestation]: (attestation: phase0.Attestation) => Promise<void> | void;

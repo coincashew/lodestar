@@ -252,14 +252,14 @@ export class ReqRespBeaconNode extends ReqResp implements IReqRespBeaconNode {
     );
   }
 
-  async blobsSidecarsByRange(
+  async blobSidecarsByRange(
     peerId: PeerId,
-    request: deneb.BlobsSidecarsByRangeRequest
-  ): Promise<deneb.BlobsSidecar[]> {
+    request: deneb.BlobSidecarsByRangeRequest
+  ): Promise<deneb.BlobSidecar[]> {
     return collectMaxResponse(
-      this.sendRequest<deneb.BlobsSidecarsByRangeRequest, deneb.BlobsSidecar>(
+      this.sendRequest<deneb.BlobSidecarsByRangeRequest, deneb.BlobSidecar>(
         peerId,
-        ReqRespMethod.BlobsSidecarsByRange,
+        ReqRespMethod.BlobSidecarsByRange,
         [Version.V1],
         request
       ),
@@ -267,12 +267,12 @@ export class ReqRespBeaconNode extends ReqResp implements IReqRespBeaconNode {
     );
   }
 
-  async beaconBlockAndBlobsSidecarByRoot(
+  async blobSidecarsByRoot(
     peerId: PeerId,
-    request: deneb.BeaconBlockAndBlobsSidecarByRootRequest
-  ): Promise<deneb.SignedBeaconBlockAndBlobsSidecar[]> {
+    request: deneb.BlobSidecarsByRootRequest
+  ): Promise<deneb.BlobSidecar[]> {
     return collectMaxResponse(
-      this.sendRequest<deneb.BeaconBlockAndBlobsSidecarByRootRequest, deneb.SignedBeaconBlockAndBlobsSidecar>(
+      this.sendRequest<deneb.BlobSidecarsByRootRequest, deneb.BlobSidecar>(
         peerId,
         ReqRespMethod.BeaconBlockAndBlobsSidecarByRoot,
         [Version.V1],

@@ -15,7 +15,7 @@ import {
   SyncCommitteeRepository,
   SyncCommitteeWitnessRepository,
   BackfilledRanges,
-  BlobsSidecarRepository,
+  BlobSidecarRepository,
   BlobsSidecarArchiveRepository,
   BLSToExecutionChangeRepository,
 } from "./repositories/index.js";
@@ -23,9 +23,9 @@ import {PreGenesisState, PreGenesisStateLastProcessedBlock} from "./single/index
 
 export class BeaconDb extends DatabaseService implements IBeaconDb {
   block: BlockRepository;
-  blobsSidecar: BlobsSidecarRepository;
+  blobSidecar: BlobSidecarRepository;
   blockArchive: BlockArchiveRepository;
-  blobsSidecarArchive: BlobsSidecarArchiveRepository;
+  blobSidecarArchive: BlobSidecarArchiveRepository;
   stateArchive: StateArchiveRepository;
 
   voluntaryExit: VoluntaryExitRepository;

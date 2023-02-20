@@ -13,11 +13,11 @@ export interface IReqRespBeaconNode {
     request: phase0.BeaconBlocksByRangeRequest
   ): Promise<allForks.SignedBeaconBlock[]>;
   beaconBlocksByRoot(peerId: PeerId, request: phase0.BeaconBlocksByRootRequest): Promise<allForks.SignedBeaconBlock[]>;
-  blobsSidecarsByRange(peerId: PeerId, request: deneb.BlobsSidecarsByRangeRequest): Promise<deneb.BlobsSidecar[]>;
-  beaconBlockAndBlobsSidecarByRoot(
+  blobsSidecarsByRange(peerId: PeerId, request: deneb.BlobSidecarsByRangeRequest): Promise<deneb.BlobSidecar[]>;
+  blobsSidecarsByRoot(
     peerId: PeerId,
-    request: deneb.BeaconBlockAndBlobsSidecarByRootRequest
-  ): Promise<deneb.SignedBeaconBlockAndBlobsSidecar[]>;
+    request: deneb.BlobSidecarsByRootRequest
+  ): Promise<deneb.BlobSidecar[]>;
   lightClientBootstrap(peerId: PeerId, request: Uint8Array): Promise<allForks.LightClientBootstrap>;
   lightClientOptimisticUpdate(peerId: PeerId): Promise<allForks.LightClientOptimisticUpdate>;
   lightClientFinalityUpdate(peerId: PeerId): Promise<allForks.LightClientFinalityUpdate>;

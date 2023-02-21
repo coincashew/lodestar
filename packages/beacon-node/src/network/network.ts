@@ -320,16 +320,11 @@ export class Network implements INetwork {
   }
 
   publishBeaconBlockMaybeBlobs(blockInput: BlockInput): Promise<void> {
-    switch (blockInput.type) {
-      case BlockInputType.preDeneb:
-        return this.gossip.publishBeaconBlock(blockInput.block);
-
-      case BlockInputType.postDeneb:
-        return this.gossip.publishSignedBeaconBlockAndBlobsSidecar({
-          beaconBlock: blockInput.block as deneb.SignedBeaconBlock,
-          blobsSidecar: blockInput.blobs,
-        });
-    }
+    return Promise.all([this.gossip.publishBeaconBlock(blockInput.block),
+      ...(blockInput.type===BlockInputType.postDeneb?
+        blockInput.blobs.map(blobSideCar=>this.gossip.publishSignedBlobSidecar(blobsSidecar))
+        :[])
+      ])
   }
 
   async beaconBlocksMaybeBlobsByRange(

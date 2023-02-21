@@ -33,7 +33,7 @@ import {NetworkEvent, NetworkEventBus} from "../../events.js";
 import {PeerAction, PeerRpcScoreStore} from "../../peers/index.js";
 import {validateLightClientFinalityUpdate} from "../../../chain/validation/lightClientFinalityUpdate.js";
 import {validateLightClientOptimisticUpdate} from "../../../chain/validation/lightClientOptimisticUpdate.js";
-import {validateGossipBlobSidecars} from "../../../chain/validation/blobSidecars.js";
+import {validateGossipBlobSidecar} from "../../../chain/validation/blobSidecar.js";
 import {BlockInput, getBlockInput} from "../../../chain/blocks/types.js";
 import {AttnetsService} from "../../subnets/attnetsService.js";
 
@@ -122,7 +122,7 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
   }
 
   async function validateBlobSidecar(
-    blobsSidecar: SignedBlobSidecar,
+    blobSidecar: SignedBlobSidecar,
   ): Promise<void> {
     const slot = blobsSidecar.message.slot;
     const forkTypes = config.getForkTypes(slot);
@@ -130,7 +130,7 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
     const delaySec = chain.clock.secFromSlot(slot, seenTimestampSec);
     const recvToVal = Date.now() / 1000 - seenTimestampSec;
     metrics?.gossipBlock.receivedToGossipValidate.observe(recvToVal);
-    logger.verbose("Received gossip block", {
+    logger.verbose("Received gossip blob", {
       slot: slot,
       root: blockHex,
       curentSlot: chain.clock.currentSlot,
@@ -140,7 +140,7 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
     });
 
     try {
-      await validateGossipBlobSidecar(config, chain, signedBlock, fork);
+      await validateGossipBlobSidecar(config, chain, blobSidecar, fork);
     } catch (e) {
       if (e instanceof BlockGossipError) {
         if (e instanceof BlockGossipError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {

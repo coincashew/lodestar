@@ -28,11 +28,11 @@ import {PreGenesisState, PreGenesisStateLastProcessedBlock} from "./single/index
 export interface IBeaconDb {
   // unfinalized blocks
   block: BlockRepository;
-  blobSidecar: BlobsSidecarRepository;
+  blobSidecar: BlobSidecarRepository;
 
   // finalized blocks
   blockArchive: BlockArchiveRepository;
-  blobSidecarArchive: BlobsSidecarArchiveRepository;
+  blobSidecarArchive: BlobSidecarArchiveRepository;
 
   // finalized states
   stateArchive: StateArchiveRepository;

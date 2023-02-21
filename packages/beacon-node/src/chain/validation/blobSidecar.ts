@@ -13,7 +13,7 @@ import {IBeaconChain} from "../interface.js";
 
 const BLS_MODULUS = BigInt("52435875175126190479447740508185965837690552500527637822603658699938581184513");
 
-export function validateGossipBlobsSidecar(
+export function validateGossipBlobSidecar(
   config: ChainForkConfig,
   chain: IBeaconChain,  
   signedBlock: deneb.SignedBeaconBlock,

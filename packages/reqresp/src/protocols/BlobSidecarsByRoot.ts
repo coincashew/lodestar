@@ -15,7 +15,7 @@ export const BlobSidecarsByRoot: ProtocolDefinitionGenerator<deneb.BlobSidecarsB
     requestType: () => ssz.deneb.BlobSidecarsByRootRequest,
     // TODO: Make it fork compliant
     responseType: () => ssz.deneb.BlobSidecar,
-    renderRequestBody: (req) => req.map((root) => toHex(root)).join(","),
+    renderRequestBody: (req) => req.map(({blockRoot, index}) => `${toHex(blockRoot)}-${index}`).join(","),
     contextBytes: {
       type: ContextBytesType.ForkDigest,
       forkDigestContext: modules.config,

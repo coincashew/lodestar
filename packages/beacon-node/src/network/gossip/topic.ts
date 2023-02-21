@@ -81,8 +81,8 @@ export function getGossipSSZType(topic: GossipTopic) {
     case GossipType.beacon_block:
       // beacon_block is updated in altair to support the updated SignedBeaconBlock type
       return ssz[topic.fork].SignedBeaconBlock;
-    case GossipType.beacon_block_and_blobs_sidecar:
-      return ssz.deneb.SignedBeaconBlockAndBlobsSidecar;
+    case GossipType.blob_sidecars:
+      return ssz.deneb.SignedBlobSidecars;
     case GossipType.beacon_aggregate_and_proof:
       return ssz.phase0.SignedAggregateAndProof;
     case GossipType.beacon_attestation:

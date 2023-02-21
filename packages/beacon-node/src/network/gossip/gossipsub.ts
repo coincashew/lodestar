@@ -199,12 +199,15 @@ export class Eth2Gossipsub extends GossipSub {
     await this.publishObject<GossipType.beacon_block>({type: GossipType.beacon_block, fork}, signedBlock);
   }
 
-  async publishSignedBeaconBlockAndBlobsSidecar(item: deneb.SignedBeaconBlockAndBlobsSidecar): Promise<void> {
-    const fork = this.config.getForkName(item.beaconBlock.message.slot);
-    await this.publishObject<GossipType.beacon_block_and_blobs_sidecar>(
-      {type: GossipType.beacon_block_and_blobs_sidecar, fork},
-      item
-    );
+  async publishSignedBlobSidecars(items: deneb.SignedBlobSidecar[]): Promise<void> {
+    return Promise.all(items.map(item=>{
+      const fork = this.config.getForkName(item.beaconBlock.message.slot);
+      return this.publishObject<GossipType.beacon_block_and_blobs_sidecar>(
+        {type: GossipType.beacon_block_and_blobs_sidecar, fork},
+        item
+      );
+    }))
+    
   }
 
   async publishBeaconAggregateAndProof(aggregateAndProof: phase0.SignedAggregateAndProof): Promise<number> {

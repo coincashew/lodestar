@@ -167,7 +167,7 @@ export async function validateGossipBlock(
   const {blobKzgCommitments} = block.body;
   for (let i = 0; i < blobKzgCommitments.length; i++) {
     if (!blsKeyValidate(blobKzgCommitments[i])) {
-      throw new BlobsSidecarError(GossipAction.REJECT, {code: BlockErrorCode.INVALID_KZG, kzgIdx: i});
+      throw new BlobSidecarsError(GossipAction.REJECT, {code: BlockErrorCode.INVALID_KZG, kzgIdx: i});
     }
   }
 
@@ -176,7 +176,7 @@ export async function validateGossipBlock(
   if (
     !verifyKzgCommitmentsAgainstTransactions(block.body.executionPayload.transactions, block.body.blobKzgCommitments)
   ) {
-    throw new BlobsSidecarError(GossipAction.REJECT, {code: BlockErrorCode.INVALID_KZG_TXS});
+    throw new BlobSidecarsError(GossipAction.REJECT, {code: BlockErrorCode.INVALID_KZG_TXS});
   }
 
   // Simple implementation of a pending block queue. Keeping the block here recycles the queue logic, and keeps the

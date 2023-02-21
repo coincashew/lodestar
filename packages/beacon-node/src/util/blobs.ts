@@ -14,7 +14,7 @@ function getEmptyKzgAggregatedProof(): Uint8Array {
 /**
  * Construct a valid BlobsSidecar for a SignedBeaconBlock that references 0 commitments
  */
-export function getEmptyBlobsSidecar(config: ChainForkConfig, block: deneb.SignedBeaconBlock): deneb.BlobsSidecar {
+export function getEmptyBlobSidecar(config: ChainForkConfig, block: deneb.SignedBeaconBlock): deneb.BlobSidecar {
   return {
     beaconBlockRoot: config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message),
     beaconBlockSlot: block.message.slot,

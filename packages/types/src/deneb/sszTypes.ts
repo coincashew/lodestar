@@ -91,7 +91,18 @@ export const BlobSidecarsByRangeRequest = new ContainerType(
   {typeName: "BlobSidecarsByRangeRequest", jsonCase: "eth2"}
 );
 
-export const BlobSidecarsByRootRequest = new ListCompositeType(Root, MAX_REQUEST_BLOB_SIDECARS*MAX_BLOBS_PER_BLOCK);
+export const BlobIdentifier = new ContainerType(
+  {
+    blockRoot: Root,
+    index: BlobIndex,
+  },
+  {typeName: "BlobIdentifier", jsonCase: "eth2"}
+);
+
+export const BlobSidecarsByRootRequest = new ListCompositeType(
+  BlobIdentifier,
+  MAX_REQUEST_BLOB_SIDECARS * MAX_BLOBS_PER_BLOCK
+);
 
 // Beacon Chain types
 // https://github.com/ethereum/consensus-specs/blob/dev/specs/eip4844/beacon-chain.md#containers
@@ -176,14 +187,6 @@ export const SignedBeaconBlockAndBlobsSidecar = new ContainerType(
     blobsSidecar: BlobSidecar,
   },
   {typeName: "SignedBeaconBlockAndBlobsSidecar", jsonCase: "eth2"}
-);
-
-export const BlobIdentifier = new ContainerType(
-  {
-    blockRoot: Root,
-    index: BlobIndex,
-  },
-  {typeName: "BlobIdentifier", jsonCase: "eth2"}
 );
 
 export const BlindedBeaconBlockBody = new ContainerType(

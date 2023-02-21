@@ -274,7 +274,7 @@ export class ReqRespBeaconNode extends ReqResp implements IReqRespBeaconNode {
     return collectMaxResponse(
       this.sendRequest<deneb.BlobSidecarsByRootRequest, deneb.BlobSidecar>(
         peerId,
-        ReqRespMethod.BeaconBlockAndBlobsSidecarByRoot,
+        ReqRespMethod.BlobSidecarsByRoot,
         [Version.V1],
         request
       ),
@@ -321,11 +321,11 @@ export class ReqRespBeaconNode extends ReqResp implements IReqRespBeaconNode {
 
     if (ForkSeq[fork] >= ForkSeq.deneb) {
       protocols.push(
-        reqRespProtocols.BeaconBlockAndBlobsSidecarByRoot(
+        reqRespProtocols.BlobSidecarsByRoot(
           modules,
-          this.reqRespHandlers.onBeaconBlockAndBlobsSidecarByRoot
+          this.reqRespHandlers.BlobSidecarsByRoot
         ),
-        reqRespProtocols.BlobsSidecarsByRange(modules, this.reqRespHandlers.onBlobsSidecarsByRange)
+        reqRespProtocols.BlobSidecarsByRange(modules, this.reqRespHandlers.onBlobSidecarsByRange)
       );
     }
 

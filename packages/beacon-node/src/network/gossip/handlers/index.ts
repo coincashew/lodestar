@@ -33,7 +33,7 @@ import {NetworkEvent, NetworkEventBus} from "../../events.js";
 import {PeerAction, PeerRpcScoreStore} from "../../peers/index.js";
 import {validateLightClientFinalityUpdate} from "../../../chain/validation/lightClientFinalityUpdate.js";
 import {validateLightClientOptimisticUpdate} from "../../../chain/validation/lightClientOptimisticUpdate.js";
-import {validateGossipBlobsSidecar} from "../../../chain/validation/blobsSidecar.js";
+import {validateGossipBlobSidecars} from "../../../chain/validation/blobSidecars.js";
 import {BlockInput, getBlockInput} from "../../../chain/blocks/types.js";
 import {AttnetsService} from "../../subnets/attnetsService.js";
 
@@ -121,12 +121,10 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
     }
   }
 
-  async function validateBlobsSidecar(
-    blockInput: BlockInput,
-    blobsSidecar: BlobsSidecar,
+  async function validateBlobSidecar(
+    blobsSidecar: SignedBlobSidecar,
   ): Promise<void> {
-    const signedBlock = blockInput.block;
-    const slot = signedBlock.message.slot;
+    const slot = blobsSidecar.message.slot;
     const forkTypes = config.getForkTypes(slot);
     const blockHex = prettyBytes(forkTypes.BeaconBlock.hashTreeRoot(signedBlock.message));
     const delaySec = chain.clock.secFromSlot(slot, seenTimestampSec);
@@ -142,7 +140,7 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
     });
 
     try {
-      await validateGossipBlock(config, chain, signedBlock, fork);
+      await validateGossipBlobSidecar(config, chain, signedBlock, fork);
     } catch (e) {
       if (e instanceof BlockGossipError) {
         if (e instanceof BlockGossipError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
@@ -215,18 +213,14 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
       handleValidBeaconBlock(blockInput, peerIdStr, seenTimestampSec);
     },
 
-    [GossipType.blobs_sidecar]: async (blockAndBlocks,{index}, topic, peerIdStr, seenTimestampSec) => {
-      const {beaconBlock, blobsSidecar} = blockAndBlocks;
-      // TODO Deneb: Should throw for pre fork blocks?
-      if (config.getForkSeq(beaconBlock.message.slot) < ForkSeq.deneb) {
+    [GossipType.blobs_sidecar]: async (signedBlob,{index}, topic, peerIdStr, seenTimestampSec) => {
+      if (config.getForkSeq(signedBlob.message.slot) < ForkSeq.deneb) {
         throw new GossipActionError(GossipAction.REJECT, {code: "PRE_DENEB_BLOCK"});
       }
 
       // Validate block + blob. Then forward, then handle both
-      const blockInput = getBlockInput.postDeneb(config, beaconBlock, blobsSidecar);
-      await validateBeaconBlock(blockInput, topic.fork, peerIdStr, seenTimestampSec);
-      validateGossipBlobsSidecar(beaconBlock, blobsSidecar,index);
-      handleValidBeaconBlock(blockInput, peerIdStr, seenTimestampSec);
+      validateGossipBlobSidecar(signedBlob,index);
+      handleValidSignedBlob(signedBlob, peerIdStr, seenTimestampSec);
     },
 
     [GossipType.beacon_aggregate_and_proof]: async (signedAggregateAndProof, _topic, _peer, seenTimestampSec) => {

@@ -8,16 +8,23 @@ export interface IReqRespBeaconNode {
   goodbye(peerId: PeerId, request: phase0.Goodbye): Promise<void>;
   ping(peerId: PeerId): Promise<phase0.Ping>;
   metadata(peerId: PeerId): Promise<allForks.Metadata>;
+
   beaconBlocksByRange(
     peerId: PeerId,
     request: phase0.BeaconBlocksByRangeRequest
   ): Promise<allForks.SignedBeaconBlock[]>;
   beaconBlocksByRoot(peerId: PeerId, request: phase0.BeaconBlocksByRootRequest): Promise<allForks.SignedBeaconBlock[]>;
-  blobsSidecarsByRange(peerId: PeerId, request: deneb.BlobSidecarsByRangeRequest): Promise<deneb.BlobSidecar[]>;
-  blobsSidecarsByRoot(
+  beaconBlocksMaybeBlobsByRange(
+    peerId: PeerId,
+    request: phase0.BeaconBlocksByRangeRequest
+  ): Promise<allForks.SignedBeaconBlock[]>;
+  beaconBlocksMaybeBlobsByRoot(peerId: PeerId, request: phase0.BeaconBlocksByRootRequest): Promise<allForks.SignedBeaconBlock[]>;
+  blobSidecarsByRange(peerId: PeerId, request: deneb.BlobSidecarsByRangeRequest): Promise<deneb.BlobSidecar[]>;
+  blobSidecarsByRoot(
     peerId: PeerId,
     request: deneb.BlobSidecarsByRootRequest
   ): Promise<deneb.BlobSidecar[]>;
+
   lightClientBootstrap(peerId: PeerId, request: Uint8Array): Promise<allForks.LightClientBootstrap>;
   lightClientOptimisticUpdate(peerId: PeerId): Promise<allForks.LightClientOptimisticUpdate>;
   lightClientFinalityUpdate(peerId: PeerId): Promise<allForks.LightClientFinalityUpdate>;

@@ -16,7 +16,7 @@ export type BlockArchiveBatchPutBinaryItem = KeyValue<Slot, Uint8Array> & {
 /**
  * Stores finalized blocks. Block slot is identifier.
  */
-export class BlobSidecarArchiveRepository extends Repository<Slot, deneb.BlobSidecars> {
+export class BlobSidecarsArchiveRepository extends Repository<Slot, deneb.BlobSidecars> {
   constructor(config: ChainForkConfig, db: Db) {
     super(config, db, Bucket.allForks_blobSidecarArchive, ssz.deneb.BlobSidecars);
   }

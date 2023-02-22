@@ -14,8 +14,8 @@ import {
   SyncCommitteeRepository,
   SyncCommitteeWitnessRepository,
   BackfilledRanges,
-  BlobSidecarRepository,
-  BlobSidecarArchiveRepository,
+  BlobSidecarsRepository,
+  BlobSidecarsArchiveRepository,
   BLSToExecutionChangeRepository,
 } from "./repositories/index.js";
 import {PreGenesisState, PreGenesisStateLastProcessedBlock} from "./single/index.js";
@@ -28,11 +28,11 @@ import {PreGenesisState, PreGenesisStateLastProcessedBlock} from "./single/index
 export interface IBeaconDb {
   // unfinalized blocks
   block: BlockRepository;
-  blobSidecar: BlobSidecarRepository;
+  blobSidecars: BlobSidecarsRepository;
 
   // finalized blocks
   blockArchive: BlockArchiveRepository;
-  blobSidecarArchive: BlobSidecarArchiveRepository;
+  blobSidecarsArchive: BlobSidecarsArchiveRepository;
 
   // finalized states
   stateArchive: StateArchiveRepository;

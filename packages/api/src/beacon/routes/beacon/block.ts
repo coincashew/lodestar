@@ -196,7 +196,7 @@ export type Api = {
     blockId: BlockId
   ): Promise<
     ApiClientResponse<{
-      [HttpStatusCode.OK]: {executionOptimistic: ExecutionOptimistic; data: deneb.BlobSidecar};
+      [HttpStatusCode.OK]: {executionOptimistic: ExecutionOptimistic; data: deneb.BlobSidecars};
     }>
   >;
 };
@@ -294,6 +294,6 @@ export function getReturnTypes(): ReturnTypes<Api> {
     getBlockHeader: ContainerDataExecutionOptimistic(BeaconHeaderResType),
     getBlockHeaders: ContainerDataExecutionOptimistic(ArrayOf(BeaconHeaderResType)),
     getBlockRoot: ContainerDataExecutionOptimistic(RootContainer),
-    getBlobSidecar: ContainerDataExecutionOptimistic(ssz.deneb.BlobSidecar),
+    getBlobSidecar: ContainerDataExecutionOptimistic(ssz.deneb.BlobSidecars),
   };
 }

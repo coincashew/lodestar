@@ -7,7 +7,7 @@ import {deneb, ssz} from "@lodestar/types";
  *
  * Used to store unfinalized BlobsSidecar
  */
-export class BlobSidecarRepository extends Repository<Uint8Array, deneb.BlobSidecars> {
+export class BlobSidecarsRepository extends Repository<Uint8Array, deneb.BlobSidecars> {
   constructor(config: ChainForkConfig, db: Db) {
     super(config, db, Bucket.allForks_blobSidecar, ssz.deneb.BlobSidecars);
   }

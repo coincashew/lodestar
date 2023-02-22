@@ -15,17 +15,17 @@ import {
   SyncCommitteeRepository,
   SyncCommitteeWitnessRepository,
   BackfilledRanges,
-  BlobSidecarRepository,
-  BlobSidecarArchiveRepository,
+  BlobSidecarsRepository,
+  BlobSidecarsArchiveRepository,
   BLSToExecutionChangeRepository,
 } from "./repositories/index.js";
 import {PreGenesisState, PreGenesisStateLastProcessedBlock} from "./single/index.js";
 
 export class BeaconDb extends DatabaseService implements IBeaconDb {
   block: BlockRepository;
-  blobSidecar: BlobSidecarRepository;
+  blobSidecars: BlobSidecarsRepository;
   blockArchive: BlockArchiveRepository;
-  blobSidecarArchive: BlobSidecarArchiveRepository;
+  blobSidecarsArchive: BlobSidecarsArchiveRepository;
   stateArchive: StateArchiveRepository;
 
   voluntaryExit: VoluntaryExitRepository;
@@ -54,7 +54,7 @@ export class BeaconDb extends DatabaseService implements IBeaconDb {
     this.block = new BlockRepository(this.config, this.db);
     this.blobSidecars = new BlobSidecarsRepository(this.config, this.db);
     this.blockArchive = new BlockArchiveRepository(this.config, this.db);
-    this.blobSidecarArchive = new BlobSidecarArchiveRepository(this.config, this.db);
+    this.blobSidecarsArchive = new BlobSidecarsArchiveRepository(this.config, this.db);
     this.stateArchive = new StateArchiveRepository(this.config, this.db);
     this.voluntaryExit = new VoluntaryExitRepository(this.config, this.db);
     this.blsToExecutionChange = new BLSToExecutionChangeRepository(this.config, this.db);

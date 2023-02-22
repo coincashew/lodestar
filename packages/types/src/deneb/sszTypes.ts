@@ -171,6 +171,8 @@ export const BlobSidecar = new ContainerType(
   {typeName: "BlobSidecar", jsonCase: "eth2"}
 );
 
+export const BlobSidecars = new ListCompositeType(BlobSidecar, MAX_BLOBS_PER_BLOCK);
+
 export const SignedBlobSidecar = new ContainerType(
   {
     message: BlobSidecar,
@@ -181,12 +183,12 @@ export const SignedBlobSidecar = new ContainerType(
 
 // TODO: deneb cleanup once the builder-api gets rectified for deneb
 // as the type is used in submitBlindedBlockV2 response
-export const SignedBeaconBlockAndBlobsSidecar = new ContainerType(
+export const SignedBeaconBlockAndBlobSidecars = new ContainerType(
   {
     beaconBlock: SignedBeaconBlock,
-    blobsSidecar: BlobSidecar,
+    blobSidecars: BlobSidecars,
   },
-  {typeName: "SignedBeaconBlockAndBlobsSidecar", jsonCase: "eth2"}
+  {typeName: "SignedBeaconBlockAndBlobSidecars", jsonCase: "eth2"}
 );
 
 export const BlindedBeaconBlockBody = new ContainerType(

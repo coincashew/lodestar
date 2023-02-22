@@ -16,19 +16,19 @@ export type BlockArchiveBatchPutBinaryItem = KeyValue<Slot, Uint8Array> & {
 /**
  * Stores finalized blocks. Block slot is identifier.
  */
-export class BlobSidecarArchiveRepository extends Repository<Slot, deneb.BlobSidecar> {
+export class BlobSidecarArchiveRepository extends Repository<Slot, deneb.BlobSidecars> {
   constructor(config: ChainForkConfig, db: Db) {
-    super(config, db, Bucket.allForks_blobsSidecarArchive, ssz.deneb.BlobSidecar);
+    super(config, db, Bucket.allForks_blobSidecarArchive, ssz.deneb.BlobSidecars);
   }
 
   // TODO: deneb involve slot to store the blob?
 
-  getId(value: deneb.BlobSidecar): Uint8Array {
-    const {blockRoot,index} = value;
-    return ssz.deneb.BlobIdentifier.serialize({blockRoot,index});
+  getId(value: deneb.BlobSidecars): Uint8Array {
+    const {slot} = value[0]
+    return slot;
   }
 
-  decodeKey(data: Uint8Array): deneb.BlobIdentifier {
-    return ssz.deneb.BlobIdentifier.serialize(data);
+  decodeKey(data: Uint8Array): number {
+    return bytesToInt((super.decodeKey(data) as unknown) as Uint8Array, "be");
   }
 }

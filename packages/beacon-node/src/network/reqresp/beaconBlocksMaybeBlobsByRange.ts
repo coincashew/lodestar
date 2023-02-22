@@ -41,7 +41,7 @@ export async function beaconBlocksMaybeBlobsByRange(
   else if (computeEpochAtSlot(startSlot) >= currentEpoch - config.MIN_EPOCHS_FOR_BLOBS_SIDECARS_REQUESTS) {
     const [blocks, allBlobSidecars] = await Promise.all([
       reqResp.beaconBlocksByRange(peerId, request),
-      reqResp.blobsSidecarsByRange(peerId, request),
+      reqResp.blobSidecarsByRange(peerId, request),
     ]);
 
     const blockInputs: BlockInput[] = [];
@@ -59,17 +59,17 @@ export async function beaconBlocksMaybeBlobsByRange(
       const blobSidecars: deneb.BlobSidecar[]=[];
 
       let blobSidecar:deneb.BlobSidecar;
-      while((blobSidecar= allBlobsSidecars[blobSideCarIndex])?.slot === block.message.slot){
+      while((blobSidecar= allBlobSidecars[blobSideCarIndex])?.slot === block.message.slot){
         blobSidecars.push(blobSidecar);
         lastMatchedSlot = block.message.slot;
         blobSideCarIndex++;
       }
 
-      // Quick inspect how many blobsSidecars was expected
+      // Quick inspect how many blobSidecars was expected
       const blobKzgCommitmentsLen = (block.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
       if(blobKzgCommitmentsLen!==blobSidecars.length){
         throw Error(
-            `Missing blobsSidecars for blockSlot=${block.message.slot} with blobKzgCommitmentsLen=${blobKzgCommitmentsLen} blobSidecars=${blobSidecars.length}`
+            `Missing blobSidecars for blockSlot=${block.message.slot} with blobKzgCommitmentsLen=${blobKzgCommitmentsLen} blobSidecars=${blobSidecars.length}`
           );
       }
 
@@ -84,7 +84,7 @@ export async function beaconBlocksMaybeBlobsByRange(
       allBlobSidecars[blobSideCarIndex].slot <= endSlot
     ) {
       throw Error(
-        `Unmatched blobsSidecars, blocks=${blocks.length}, blobs=${
+        `Unmatched blobSidecars, blocks=${blocks.length}, blobs=${
           allBlobSidecars.length
         } lastMatchedSlot=${lastMatchedSlot}, pending blobsSidecars slots=${allBlobSidecars
           .slice(blobSideCarIndex)

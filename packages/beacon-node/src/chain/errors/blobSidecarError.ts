@@ -1,7 +1,7 @@
 import {Slot} from "@lodestar/types";
 import {GossipActionError} from "./gossipValidation.js";
 
-export enum BlobSidecarsErrorCode {
+export enum BlobSidecarErrorCode {
   /** !bls.KeyValidate(block.body.blob_kzg_commitments[i]) */
   INVALID_KZG = "BLOBS_SIDECAR_ERROR_INVALID_KZG",
   /** !verify_kzg_commitments_against_transactions(block.body.execution_payload.transactions, block.body.blob_kzg_commitments) */
@@ -14,11 +14,11 @@ export enum BlobSidecarsErrorCode {
   INVALID_KZG_PROOF = "BLOBS_SIDECAR_ERROR_INVALID_KZG_PROOF",
 }
 
-export type BlobSidecarsErrorType =
-  | {code: BlobSidecarsErrorCode.INVALID_KZG; kzgIdx: number}
-  | {code: BlobSidecarsErrorCode.INVALID_KZG_TXS}
-  | {code: BlobSidecarsErrorCode.INCORRECT_SLOT; blockSlot: Slot; blobSlot: Slot, blobIdx:number}
-  | {code: BlobSidecarsErrorCode.INVALID_BLOB; blobIdx: number}
-  | {code: BlobSidecarsErrorCode.INVALID_KZG_PROOF,blobIdx: number};
+export type BlobSidecarErrorType =
+  | {code: BlobSidecarErrorCode.INVALID_KZG; kzgIdx: number}
+  | {code: BlobSidecarErrorCode.INVALID_KZG_TXS}
+  | {code: BlobSidecarErrorCode.INCORRECT_SLOT; blockSlot: Slot; blobSlot: Slot, blobIdx:number}
+  | {code: BlobSidecarErrorCode.INVALID_BLOB; blobIdx: number}
+  | {code: BlobSidecarErrorCode.INVALID_KZG_PROOF,blobIdx: number};
 
-export class BlobSidecarsError extends GossipActionError<BlobSidecarsErrorType> {}
+export class BlobSidecarError extends GossipActionError<BlobSidecarErrorType> {}

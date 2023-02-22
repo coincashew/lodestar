@@ -322,7 +322,7 @@ export class Network implements INetwork {
   publishBeaconBlockMaybeBlobs(blockInput: BlockInput): Promise<void> {
     return Promise.all([this.gossip.publishBeaconBlock(blockInput.block),
       ...(blockInput.type===BlockInputType.postDeneb?
-        blockInput.blobs.map(blobSideCar=>this.gossip.publishSignedBlobSidecar(blobsSidecar))
+        blockInput.blobs.map(blobSideCar=>this.gossip.publishSignedBlobSidecar(blobSideCar))
         :[])
       ])
   }

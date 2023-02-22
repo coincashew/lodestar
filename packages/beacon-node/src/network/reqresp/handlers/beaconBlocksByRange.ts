@@ -12,14 +12,14 @@ export function onBeaconBlocksByRange(
   chain: IBeaconChain,
   db: IBeaconDb
 ): AsyncIterable<EncodedPayloadBytes> {
-  return onBlocksOrBlobsSidecarsByRange(request, chain, {
+  return onBlocksOrBlobSidecarsByRange(request, chain, {
     finalized: db.blockArchive,
     unfinalized: db.block,
   });
 }
 
-export async function* onBlocksOrBlobsSidecarsByRange(
-  request: deneb.BlobsSidecarsByRangeRequest,
+export async function* onBlocksOrBlobSidecarsByRange(
+  request: deneb.BlobSidecarsByRangeRequest,
   chain: IBeaconChain,
   db: {
     finalized: Pick<IBeaconDb["blockArchive"], "binaryEntriesStream" | "decodeKey">;

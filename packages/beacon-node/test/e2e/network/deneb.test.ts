@@ -6,24 +6,24 @@ import {signedBeaconBlockAndBlobsSidecarFromBytes} from "../../../src/network/re
 describe("signedBeaconBlockAndBlobsSidecarFromBytes", () => {
   it("signedBeaconBlockAndBlobsSidecarFromBytes", () => {
     const beaconBlock = ssz.deneb.SignedBeaconBlock.defaultValue();
-    const blobsSidecar = ssz.deneb.BlobsSidecar.defaultValue();
+    const blobSidecar = ssz.deneb.BlobSidecar.defaultValue();
 
     const signedBeaconBlockAndBlobsSidecarBytes = signedBeaconBlockAndBlobsSidecarFromBytes(
       ssz.deneb.SignedBeaconBlock.serialize(beaconBlock),
-      ssz.deneb.BlobsSidecar.serialize(blobsSidecar)
+      ssz.deneb.BlobSidecar.serialize(blobsSidecar)
     );
 
-    const signedBeaconBlockAndBlobsSidecar: deneb.SignedBeaconBlockAndBlobsSidecar = {
+    const signedBeaconBlockAndBlobSidecars: deneb.SignedBeaconBlockAndBlobSidecars = {
       beaconBlock,
       blobsSidecar,
     };
 
-    expect(toHex(signedBeaconBlockAndBlobsSidecarBytes)).equals(
-      toHex(ssz.deneb.SignedBeaconBlockAndBlobsSidecar.serialize(signedBeaconBlockAndBlobsSidecar)),
+    expect(toHex(signedBeaconBlockAndBlobSidecarsBytes)).equals(
+      toHex(ssz.deneb.SignedBeaconBlockAndBlobSidecar.serialize(signedBeaconBlockAndBlobSidecars)),
       "Wrong signedBeaconBlockAndBlobsSidecarBytes"
     );
 
     // Ensure deserialize does not throw
-    ssz.deneb.SignedBeaconBlockAndBlobsSidecar.deserialize(signedBeaconBlockAndBlobsSidecarBytes);
+    ssz.deneb.SignedBeaconBlockAndBlobSidecar.deserialize(signedBeaconBlockAndBlobsSidecarBytes);
   });
 });

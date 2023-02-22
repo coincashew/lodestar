@@ -12,7 +12,7 @@ function getEmptyKzgAggregatedProof(): Uint8Array {
 }
 
 /**
- * Construct a valid BlobsSidecar for a SignedBeaconBlock that references 0 commitments
+ * Construct a valid BlobSidecar for a SignedBeaconBlock that references 0 commitments
  */
 export function getEmptyBlobSidecar(config: ChainForkConfig, block: deneb.SignedBeaconBlock): deneb.BlobSidecar {
   return {

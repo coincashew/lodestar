@@ -6,6 +6,7 @@ export type KZGCommitment = ValueOf<typeof ssz.KZGCommitment>;
 export type Blob = ValueOf<typeof ssz.Blob>;
 export type Blobs = ValueOf<typeof ssz.Blobs>;
 export type BlobSidecar = ValueOf<typeof ssz.BlobSidecar>;
+export type BlobSidecars = ValueOf<typeof ssz.BlobSidecars>;
 export type SignedBlobSidecar = ValueOf<typeof ssz.SignedBlobSidecar>;
 export type BlobIdentifier = ValueOf<typeof ssz.BlobIdentifier>;
 export type BlobKzgCommitments = ValueOf<typeof ssz.BlobKzgCommitments>;
@@ -22,7 +23,7 @@ export type ExecutionPayloadHeader = ValueOf<typeof ssz.ExecutionPayloadHeader>;
 export type BeaconBlockBody = ValueOf<typeof ssz.BeaconBlockBody>;
 export type BeaconBlock = ValueOf<typeof ssz.BeaconBlock>;
 export type SignedBeaconBlock = ValueOf<typeof ssz.SignedBeaconBlock>;
-export type SignedBeaconBlockAndBlobsSidecar = ValueOf<typeof ssz.SignedBeaconBlockAndBlobsSidecar>;
+export type SignedBeaconBlockAndBlobSidecars = ValueOf<typeof ssz.SignedBeaconBlockAndBlobSidecars>;
 
 export type BeaconState = ValueOf<typeof ssz.BeaconState>;
 

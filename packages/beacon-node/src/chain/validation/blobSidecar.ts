@@ -5,7 +5,7 @@ import {deneb, Root, ssz} from "@lodestar/types";
 import {bytesToBigInt} from "@lodestar/utils";
 import {BYTES_PER_FIELD_ELEMENT, FIELD_ELEMENTS_PER_BLOB} from "@lodestar/params";
 import {verifyKzgCommitmentsAgainstTransactions} from "@lodestar/state-transition";
-import {BlobsSidecarError, BlobsSidecarErrorCode} from "../errors/blobsSidecarError.js";
+import {BlobSidecarError, BlobSidecarErrorCode} from "../errors/blobSidecarError.js";
 import {GossipAction} from "../errors/gossipValidation.js";
 import {byteArrayEquals} from "../../util/bytes.js";
 import {ckzg} from "../../util/kzg.js";
@@ -16,42 +16,28 @@ const BLS_MODULUS = BigInt("5243587517512619047944774050818596583769055250052763
 export function validateGossipBlobSidecar(
   config: ChainForkConfig,
   chain: IBeaconChain,  
-  signedBlock: deneb.SignedBeaconBlock,
-  blobsSidecar: deneb.BlobSidecar,
+  blobSidecar: deneb.BlobSidecar,
   index: number,
 ): void {
   const block = signedBlock.message;
 
-  // Spec: https://github.com/ethereum/consensus-specs/blob/4cb6fd1c8c8f190d147d15b182c2510d0423ec61/specs/eip4844/p2p-interface.md#beacon_block_and_blobs_sidecar
-
-  // [IGNORE] the sidecar.beacon_block_slot is for the current slot (with a MAXIMUM_GOSSIP_CLOCK_DISPARITY allowance)
-  // -- i.e. sidecar.beacon_block_slot == block.slot.
-  if (blobsSidecar.slot !== block.slot) {
-    throw new BlobsSidecarError(GossipAction.IGNORE, {
-      code: BlobsSidecarErrorCode.INCORRECT_SLOT,
-      blockSlot: block.slot,
-      blobSlot: blobsSidecar.slot,
-      blobIdx: blobsSidecar.index
-    });
-  }
-
   // [REJECT] the sidecar.blobs are all well formatted, i.e. the BLSFieldElement in valid range (x < BLS_MODULUS).
-    if (!blobIsValidRange(blobsSidecar.blob)) {
-      throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_BLOB, blobIdx: blobsSidecar.index});
+    if (!blobIsValidRange(blobSidecar.blob)) {
+      throw new BlobSidecarError(GossipAction.REJECT, {code: BlobSidecarErrorCode.INVALID_BLOB, blobIdx: blobsSidecar.index});
     }
 
   // [REJECT] The KZG proof is a correctly encoded compressed BLS G1 Point
   // -- i.e. blsKeyValidate(blobs_sidecar.kzg_aggregated_proof)
-  if (!blsKeyValidate(blobsSidecar.kzgProof)) {
-    throw new BlobsSidecarError(GossipAction.REJECT, {code: BlobsSidecarErrorCode.INVALID_KZG_PROOF,blobIdx: blobsSidecar.index});
+  if (!blsKeyValidate(blobSidecar.kzgProof)) {
+    throw new BlobSidecarError(GossipAction.REJECT, {code: BlobSidecarErrorCode.INVALID_KZG_PROOF,blobIdx: blobsSidecar.index});
   }
 
   // [REJECT] The KZG commitments in the block are valid against the provided blobs sidecar. -- i.e.
   // validate_blobs_sidecar(block.slot, hash_tree_root(block), block.body.blob_kzg_commitments, sidecar)
   validateBlobs(
-    [blobsSidecar.kzgCommitment],
-    [blobsSidecar.blob],
-    [blobsSidecar.kzgProof]
+    [blobSidecar.kzgCommitment],
+    [blobSidecar.blob],
+    [blobSidecar.kzgProof]
   );
 }
 

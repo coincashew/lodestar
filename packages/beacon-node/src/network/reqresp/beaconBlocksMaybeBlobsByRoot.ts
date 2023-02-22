@@ -25,7 +25,7 @@ export async function beaconBlocksMaybeBlobsByRoot(
   }
   const blobKzgCommitmentsLen = (block.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length??0;
 
-  const blobsSidecars = await Promise.all(Array.from({length: blobKzgCommitmentsLen}),(_v,index)=>{
+  const blobSidecars = await Promise.all(Array.from({length: blobKzgCommitmentsLen}),(_v,index)=>{
     const blobRequest = [{blockRoot,index}]
     return reqResp.blobSidecarsByRootRequest(peerId,blobRequest)
   })

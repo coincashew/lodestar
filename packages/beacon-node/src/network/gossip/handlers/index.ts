@@ -124,9 +124,8 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
   async function validateBlobSidecar(
     blobSidecar: SignedBlobSidecar,
   ): Promise<void> {
-    const slot = blobsSidecar.message.slot;
+    const slot = blobSideCar.message.slot;
     const forkTypes = config.getForkTypes(slot);
-    const blockHex = prettyBytes(forkTypes.BeaconBlock.hashTreeRoot(signedBlock.message));
     const delaySec = chain.clock.secFromSlot(slot, seenTimestampSec);
     const recvToVal = Date.now() / 1000 - seenTimestampSec;
     metrics?.gossipBlock.receivedToGossipValidate.observe(recvToVal);
@@ -168,8 +167,8 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
       .processBlock(blockInput, {
         // proposer signature already checked in validateBeaconBlock()
         validProposerSignature: true,
-        // blobsSidecar already checked in validateGossipBlobsSidecar()
-        validBlobsSidecar: true,
+        // blobsSidecar needs to be validated for block
+        validBlobSidecar: false,
         // It's critical to keep a good number of mesh peers.
         // To do that, the Gossip Job Wait Time should be consistently <3s to avoid the behavior penalties in gossip
         // Gossip Job Wait Time depends on the BLS Job Wait Time

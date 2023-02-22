@@ -25,9 +25,9 @@ export async function* onBlobSidecarsByRoot(
       continue;
     }
 
-    const blobSidecarBytes = await db.blobsSidecar.getBinary(blobIdentifier);
+    const blobSidecarBytes = await db.blobSidecar.getBinary(blobIdentifier);
     if (!blobSidecarBytes) {
-      throw Error(`Inconsistent state, blobsSidecar known to fork-choice not in db ${blockRootHex}`);
+      throw Error(`Inconsistent state, blobSidecar known to fork-choice not in db ${blockRootHex}`);
     }
 
     yield {

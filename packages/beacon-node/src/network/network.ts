@@ -35,6 +35,7 @@ import {getConnectionsMap, isPublishToZeroPeersError} from "./util.js";
 import {Discv5Worker} from "./discv5/index.js";
 import {createNodeJsLibp2p} from "./nodejs/util.js";
 import {NetworkProcessor} from "./processor/index.js";
+import {PendingGossipsubMessage} from "./processor/types.js";
 
 // How many changes to batch cleanup
 const CACHED_BLS_BATCH_CLEANUP_LIMIT = 10;
@@ -422,6 +423,10 @@ export class Network implements INetwork {
 
   getAgentVersion(peerIdStr: string): string {
     return this.peersData.getAgentVersion(peerIdStr);
+  }
+
+  dumpGossipQueue(gossipType: GossipType): PendingGossipsubMessage[] {
+    return this.networkProcessor.dumpGossipQueue(gossipType);
   }
 
   /**

@@ -8,12 +8,13 @@ import {SignableENR} from "@chainsafe/discv5";
 import {phase0} from "@lodestar/types";
 import {BlockInput} from "../chain/blocks/types.js";
 import {INetworkEventBus} from "./events.js";
-import {Eth2Gossipsub} from "./gossip/index.js";
+import {Eth2Gossipsub, GossipType} from "./gossip/index.js";
 import {MetadataController} from "./metadata.js";
 import {IPeerRpcScoreStore, PeerAction} from "./peers/index.js";
 import {IReqRespBeaconNode} from "./reqresp/ReqRespBeaconNode.js";
 import {IAttnetsService, SubnetsService, CommitteeSubscription} from "./subnets/index.js";
 import {Discv5Worker} from "./discv5/index.js";
+import {PendingGossipsubMessage} from "./processor/types.js";
 
 export type PeerSearchOptions = {
   supportsProtocols?: string[];
@@ -60,6 +61,7 @@ export interface INetwork {
   connectToPeer(peer: PeerId, multiaddr: Multiaddr[]): Promise<void>;
   disconnectPeer(peer: PeerId): Promise<void>;
   getAgentVersion(peerIdStr: string): string;
+  dumpGossipQueue(gossipType: GossipType): PendingGossipsubMessage[];
 }
 
 export type PeerDirection = Connection["stat"]["direction"];

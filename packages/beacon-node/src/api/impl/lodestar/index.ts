@@ -60,22 +60,8 @@ export function getLodestarApi({
     },
 
     async getGossipQueueItems(gossipType: GossipType | string) {
-      const jobQueue = network.gossip.jobQueues[gossipType as GossipType];
-      if (jobQueue === undefined) {
-        throw Error(`Unknown gossipType ${gossipType}, known values: ${Object.keys(jobQueue).join(", ")}`);
-      }
-
       return {
-        data: jobQueue.getItems().map((item) => {
-          const [topic, message, propagationSource, seenTimestampSec] = item.args;
-          return {
-            topic: topic,
-            propagationSource,
-            data: message.data,
-            addedTimeMs: item.addedTimeMs,
-            seenTimestampSec,
-          };
-        }),
+        data: network.dumpGossipQueue(gossipType as GossipType),
       };
     },
 

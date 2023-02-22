@@ -265,6 +265,11 @@ export function createLodestarMetrics(
       labelNames: ["topic"],
       buckets: [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10],
     }),
+    gossipValidationQueueConcurrency: register.gauge<"topic">({
+      name: "lodestar_gossip_validation_queue_concurrency",
+      help: "Current count of jobs being run on network processor for topic",
+      labelNames: ["topic"],
+    }),
 
     networkProcessor: {
       executeWorkCalls: register.gauge({

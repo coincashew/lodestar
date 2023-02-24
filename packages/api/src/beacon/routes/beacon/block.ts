@@ -192,7 +192,7 @@ export type Api = {
    * @param blockId Block identifier.
    * Can be one of: "head" (canonical head in node's view), "genesis", "finalized", \<slot\>, \<hex encoded blockRoot with 0x prefix\>.
    */
-  getBlobSidecar(
+  getBlobSidecars(
     blockId: BlockId
   ): Promise<
     ApiClientResponse<{
@@ -213,7 +213,7 @@ export const routesData: RoutesData<Api> = {
   getBlockRoot: {url: "/eth/v1/beacon/blocks/{block_id}/root", method: "GET"},
   publishBlock: {url: "/eth/v1/beacon/blocks", method: "POST"},
   publishBlindedBlock: {url: "/eth/v1/beacon/blinded_blocks", method: "POST"},
-  getBlobSidecar: {url: "/eth/v1/beacon/blobs_sidecars/{block_id}", method: "GET"},
+  getBlobSidecars: {url: "/eth/v1/beacon/blob_sidecars/{block_id}", method: "GET"},
 };
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -229,7 +229,7 @@ export type ReqTypes = {
   getBlockRoot: BlockIdOnlyReq;
   publishBlock: {body: unknown};
   publishBlindedBlock: {body: unknown};
-  getBlobSidecar: BlockIdOnlyReq;
+  getBlobSidecars: BlockIdOnlyReq;
 };
 
 export function getReqSerializers(config: ChainForkConfig): ReqSerializers<Api, ReqTypes> {
@@ -272,7 +272,7 @@ export function getReqSerializers(config: ChainForkConfig): ReqSerializers<Api, 
     getBlockRoot: blockIdOnlyReq,
     publishBlock: reqOnlyBody(AllForksSignedBeaconBlock, Schema.Object),
     publishBlindedBlock: reqOnlyBody(AllForksSignedBlindedBeaconBlock, Schema.Object),
-    getBlobSidecar: blockIdOnlyReq,
+    getBlobSidecars: blockIdOnlyReq,
   };
 }
 
@@ -294,6 +294,6 @@ export function getReturnTypes(): ReturnTypes<Api> {
     getBlockHeader: ContainerDataExecutionOptimistic(BeaconHeaderResType),
     getBlockHeaders: ContainerDataExecutionOptimistic(ArrayOf(BeaconHeaderResType)),
     getBlockRoot: ContainerDataExecutionOptimistic(RootContainer),
-    getBlobSidecar: ContainerDataExecutionOptimistic(ssz.deneb.BlobSidecars),
+    getBlobSidecars: ContainerDataExecutionOptimistic(ssz.deneb.BlobSidecars),
   };
 }

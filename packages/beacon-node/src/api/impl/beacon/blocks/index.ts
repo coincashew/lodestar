@@ -241,21 +241,21 @@ export function getBeaconBlockApi({
       ]);
     },
 
-    async getBlobSidecar(blockId) {
+    async getBlobSidecars(blockId) {
       const {block, executionOptimistic} = await resolveBlockId(chain.forkChoice, db, blockId);
 
       const blockRoot = config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
 
-      let blobSidecar = await db.blobSidecars.get(blockRoot);
-      if (!blobSidecar) {
-        blobSidecar = await db.blobSidecarsArchive.get(block.message.slot);
-        if (!blobSidecar) {
+      let blobSidecars = await db.blobSidecars.get(blockRoot);
+      if (!blobSidecars) {
+        blobSidecars = await db.blobSidecarsArchive.get(block.message.slot);
+        if (!blobSidecars) {
           throw Error("Not found in db");
         }
       }
       return {
         executionOptimistic,
-        data: blobSidecar,
+        data: blobSidecars,
       };
     },
   };

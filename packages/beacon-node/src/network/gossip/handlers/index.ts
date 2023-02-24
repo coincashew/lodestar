@@ -1,7 +1,7 @@
 import {peerIdFromString} from "@libp2p/peer-id";
 import {toHexString} from "@chainsafe/ssz";
 import {BeaconConfig} from "@lodestar/config";
-import {phase0, ssz} from "@lodestar/types";
+import {phase0, ssz, deneb} from "@lodestar/types";
 import {Logger, prettyBytes} from "@lodestar/utils";
 import {ForkName, ForkSeq} from "@lodestar/params";
 import {Metrics} from "../../../metrics/index.js";
@@ -121,39 +121,35 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
     }
   }
 
-  async function validateBlobSidecar(
-    blobSidecar: SignedBlobSidecar,
-  ): Promise<void> {
-    const slot = blobSideCar.message.slot;
-    const forkTypes = config.getForkTypes(slot);
-    const delaySec = chain.clock.secFromSlot(slot, seenTimestampSec);
-    const recvToVal = Date.now() / 1000 - seenTimestampSec;
-    metrics?.gossipBlock.receivedToGossipValidate.observe(recvToVal);
-    logger.verbose("Received gossip blob", {
-      slot: slot,
-      root: blockHex,
-      curentSlot: chain.clock.currentSlot,
-      peerId: peerIdStr,
-      delaySec,
-      recvToVal,
-    });
-
-    try {
-      await validateGossipBlobSidecar(config, chain, blobSidecar, fork);
-    } catch (e) {
-      if (e instanceof BlockGossipError) {
-        if (e instanceof BlockGossipError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
-          logger.debug("Gossip block has error", {slot, root: blockHex, code: e.type.code});
-          networkEventBus.emit(NetworkEvent.unknownBlockParent, blockInput, peerIdStr);
-        }
-      }
-
-      if (e instanceof BlockGossipError && e.action === GossipAction.REJECT) {
-        chain.persistInvalidSszValue(forkTypes.SignedBeaconBlock, signedBlock, `gossip_reject_slot_${slot}`);
-      }
-
-      throw e;
-    }
+  async function validateBlobSidecar(blobSidecar: deneb.SignedBlobSidecar, index: number): Promise<void> {
+    // TODO: freetheblobs
+    // const slot = blobSideCar.message.slot;
+    // const forkTypes = config.getForkTypes(slot);
+    // const delaySec = chain.clock.secFromSlot(slot, seenTimestampSec);
+    // const recvToVal = Date.now() / 1000 - seenTimestampSec;
+    // metrics?.gossipBlock.receivedToGossipValidate.observe(recvToVal);
+    // logger.verbose("Received gossip blob", {
+    //   slot: slot,
+    //   root: blockHex,
+    //   curentSlot: chain.clock.currentSlot,
+    //   peerId: peerIdStr,
+    //   delaySec,
+    //   recvToVal,
+    // });
+    // try {
+    //   await validateGossipBlobSidecar(config, chain, blobSidecar, fork);
+    // } catch (e) {
+    //   if (e instanceof BlockGossipError) {
+    //     if (e instanceof BlockGossipError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
+    //       logger.debug("Gossip block has error", {slot, root: blockHex, code: e.type.code});
+    //       networkEventBus.emit(NetworkEvent.unknownBlockParent, blockInput, peerIdStr);
+    //     }
+    //   }
+    //   if (e instanceof BlockGossipError && e.action === GossipAction.REJECT) {
+    //     chain.persistInvalidSszValue(forkTypes.SignedBeaconBlock, signedBlock, `gossip_reject_slot_${slot}`);
+    //   }
+    //   throw e;
+    // }
   }
 
   function handleValidBeaconBlock(blockInput: BlockInput, peerIdStr: string, seenTimestampSec: number): void {
@@ -168,7 +164,7 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
         // proposer signature already checked in validateBeaconBlock()
         validProposerSignature: true,
         // blobsSidecar needs to be validated for block
-        validBlobSidecar: false,
+        validBlobSidecars: true,
         // It's critical to keep a good number of mesh peers.
         // To do that, the Gossip Job Wait Time should be consistently <3s to avoid the behavior penalties in gossip
         // Gossip Job Wait Time depends on the BLS Job Wait Time
@@ -212,14 +208,15 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
       handleValidBeaconBlock(blockInput, peerIdStr, seenTimestampSec);
     },
 
-    [GossipType.blobs_sidecar]: async (signedBlob,{index}, topic, peerIdStr, seenTimestampSec) => {
+    [GossipType.blob_sidecar]: async (signedBlob, {index}, peerIdStr, seenTimestampSec) => {
       if (config.getForkSeq(signedBlob.message.slot) < ForkSeq.deneb) {
         throw new GossipActionError(GossipAction.REJECT, {code: "PRE_DENEB_BLOCK"});
       }
 
       // Validate block + blob. Then forward, then handle both
-      validateGossipBlobSidecar(signedBlob,index);
-      handleValidSignedBlob(signedBlob, peerIdStr, seenTimestampSec);
+      validateBlobSidecar(signedBlob, index);
+      // TODO: freetheblobs
+      // handleValidSignedBlob(signedBlob, peerIdStr, seenTimestampSec);
     },
 
     [GossipType.beacon_aggregate_and_proof]: async (signedAggregateAndProof, _topic, _peer, seenTimestampSec) => {

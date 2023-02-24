@@ -3,7 +3,13 @@ import {PeerId} from "@libp2p/interface-peer-id";
 import {Multiaddr} from "@multiformats/multiaddr";
 import {BeaconConfig} from "@lodestar/config";
 import {Logger, sleep} from "@lodestar/utils";
-import {ATTESTATION_SUBNET_COUNT, ForkName, ForkSeq, SYNC_COMMITTEE_SUBNET_COUNT,MAX_BLOBS_PER_BLOCK} from "@lodestar/params";
+import {
+  ATTESTATION_SUBNET_COUNT,
+  ForkName,
+  ForkSeq,
+  SYNC_COMMITTEE_SUBNET_COUNT,
+  MAX_BLOBS_PER_BLOCK,
+} from "@lodestar/params";
 import {SignableENR} from "@chainsafe/discv5";
 import {computeEpochAtSlot, computeTimeAtSlot} from "@lodestar/state-transition";
 import {deneb, Epoch, phase0, allForks} from "@lodestar/types";
@@ -319,12 +325,16 @@ export class Network implements INetwork {
     return this.peerManager.hasSomeConnectedPeer();
   }
 
-  publishBeaconBlockMaybeBlobs(blockInput: BlockInput): Promise<void> {
-    return Promise.all([this.gossip.publishBeaconBlock(blockInput.block),
-      ...(blockInput.type===BlockInputType.postDeneb?
-        blockInput.blobs.map(blobSideCar=>this.gossip.publishSignedBlobSidecar(blobSideCar))
-        :[])
-      ])
+  async publishBeaconBlockMaybeBlobs(blockInput: BlockInput): Promise<void> {
+    await Promise.all([
+      this.gossip.publishBeaconBlock(blockInput.block),
+      ...(blockInput.type === BlockInputType.postDeneb
+        ? // TODO: freetheblobs
+          // blockInput.blobs.map(blobSideCar=>this.gossip.publishSignedBlobSidecar(blobSideCar))
+          []
+        : []),
+    ]);
+    return;
   }
 
   async beaconBlocksMaybeBlobsByRange(
@@ -514,8 +524,8 @@ export class Network implements INetwork {
 
     // After Deneb also track blob_sidecar_{index}
     if (ForkSeq[fork] >= ForkSeq.deneb) {
-      for(let index=0;index<MAX_BLOBS_PER_BLOCK;i++){
-      topics.push({type: GossipType.blobs_sidecar,index});        
+      for (let index = 0; index < MAX_BLOBS_PER_BLOCK; index++) {
+        topics.push({type: GossipType.blob_sidecar, index});
       }
     }
 

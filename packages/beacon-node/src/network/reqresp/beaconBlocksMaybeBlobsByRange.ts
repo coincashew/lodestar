@@ -5,7 +5,6 @@ import {ForkSeq} from "@lodestar/params";
 import {computeEpochAtSlot} from "@lodestar/state-transition";
 
 import {BlockInput, getBlockInput} from "../../chain/blocks/types.js";
-import {getEmptyBlobSidecar} from "../../util/blobs.js";
 import {IReqRespBeaconNode} from "./interface.js";
 
 export async function beaconBlocksMaybeBlobsByRange(
@@ -38,7 +37,7 @@ export async function beaconBlocksMaybeBlobsByRange(
   }
 
   // Only request blobs if they are recent enough
-  else if (computeEpochAtSlot(startSlot) >= currentEpoch - config.MIN_EPOCHS_FOR_BLOBS_SIDECARS_REQUESTS) {
+  else if (computeEpochAtSlot(startSlot) >= currentEpoch - config.MIN_EPOCHS_FOR_BLOB_SIDECARS_REQUESTS) {
     const [blocks, allBlobSidecars] = await Promise.all([
       reqResp.beaconBlocksByRange(peerId, request),
       reqResp.blobSidecarsByRange(peerId, request),
@@ -56,10 +55,10 @@ export async function beaconBlocksMaybeBlobsByRange(
     // Assuming that the blocks and blobs will come in same sorted order
     for (let i = 0; i < blocks.length; i++) {
       const block = blocks[i];
-      const blobSidecars: deneb.BlobSidecar[]=[];
+      const blobSidecars: deneb.BlobSidecar[] = [];
 
-      let blobSidecar:deneb.BlobSidecar;
-      while((blobSidecar= allBlobSidecars[blobSideCarIndex])?.slot === block.message.slot){
+      let blobSidecar: deneb.BlobSidecar;
+      while ((blobSidecar = allBlobSidecars[blobSideCarIndex])?.slot === block.message.slot) {
         blobSidecars.push(blobSidecar);
         lastMatchedSlot = block.message.slot;
         blobSideCarIndex++;
@@ -67,10 +66,10 @@ export async function beaconBlocksMaybeBlobsByRange(
 
       // Quick inspect how many blobSidecars was expected
       const blobKzgCommitmentsLen = (block.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length;
-      if(blobKzgCommitmentsLen!==blobSidecars.length){
+      if (blobKzgCommitmentsLen !== blobSidecars.length) {
         throw Error(
-            `Missing blobSidecars for blockSlot=${block.message.slot} with blobKzgCommitmentsLen=${blobKzgCommitmentsLen} blobSidecars=${blobSidecars.length}`
-          );
+          `Missing blobSidecars for blockSlot=${block.message.slot} with blobKzgCommitmentsLen=${blobKzgCommitmentsLen} blobSidecars=${blobSidecars.length}`
+        );
       }
 
       blockInputs.push(getBlockInput.postDeneb(config, block, blobSidecars));

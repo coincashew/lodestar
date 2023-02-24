@@ -1,7 +1,7 @@
 import {PeerId} from "@libp2p/interface-peer-id";
 import {BeaconConfig} from "@lodestar/config";
 import {RequestError, RequestErrorCode} from "@lodestar/reqresp";
-import {Epoch, phase0, Root, Slot} from "@lodestar/types";
+import {Epoch, phase0, Root, Slot, deneb} from "@lodestar/types";
 import {toHex} from "@lodestar/utils";
 import {ForkSeq} from "@lodestar/params";
 import {BlockInput, getBlockInput} from "../../chain/blocks/types.js";
@@ -12,10 +12,10 @@ export async function beaconBlocksMaybeBlobsByRoot(
   config: BeaconConfig,
   reqResp: IReqRespBeaconNode,
   peerId: PeerId,
-  request: deneb.BeaconBlockByRootRequest,
+  request: phase0.BeaconBlocksByRootRequest,
   currentSlot: Epoch,
   finalizedSlot: Slot
-): Promise<deneb.BlobSideCar[]> {
+): Promise<BlockInput[]> {
   // Assume all requests are post Deneb
   // TODO: make this multiblock
   const [blockRoot] = request;
@@ -23,10 +23,18 @@ export async function beaconBlocksMaybeBlobsByRoot(
   if (resBlocks.length < 1) {
     throw Error(`beaconBlocksByRoot return empty for block root ${toHex(blockRoot)}`);
   }
-  const blobKzgCommitmentsLen = (block.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length??0;
+  const blockInputs = [];
+  for (const block of resBlocks) {
+    const blobKzgCommitmentsLen = (block.message.body as deneb.BeaconBlockBody).blobKzgCommitments.length ?? 0;
 
-  const blobSidecars = await Promise.all(Array.from({length: blobKzgCommitmentsLen}),(_v,index)=>{
-    const blobRequest = [{blockRoot,index}]
-    return reqResp.blobSidecarsByRootRequest(peerId,blobRequest)
-  })
+    // TODO: freetheblobs
+    const blobSidecars = await Promise.all(
+      Array.from({length: blobKzgCommitmentsLen}, (_v, index) => {
+        const blobRequest = [{blockRoot, index}];
+        return reqResp.blobSidecarsByRoot(peerId, blobRequest).then((response) => response[0]);
+      })
+    );
+    blockInputs.push(getBlockInput.postDeneb(config, block, blobSidecars));
+  }
+  return blockInputs;
 }

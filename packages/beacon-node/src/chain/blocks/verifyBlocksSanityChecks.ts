@@ -5,7 +5,7 @@ import {Slot, deneb} from "@lodestar/types";
 import {toHexString} from "@lodestar/utils";
 import {BeaconClock} from "../clock/interface.js";
 import {BlockError, BlockErrorCode} from "../errors/index.js";
-import {validateBlobSidecars} from "../validation/blobSidecars.js";
+import {validateBlobSidecars} from "../validation/blobSidecar.js";
 import {BlockInput, BlockInputType, ImportBlockOpts} from "./types.js";
 
 /**
@@ -132,7 +132,9 @@ function maybeValidateBlobs(
       const {blobKzgCommitments} = (block as deneb.SignedBeaconBlock).message.body;
       const beaconBlockRoot = config.getForkTypes(blockSlot).BeaconBlock.hashTreeRoot(block.message);
       // TODO Deneb: This function throws un-typed errors
-      validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs);
+      blobs.forEach((blob) => {
+        validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs);
+      });
 
       return DataAvailableStatus.available;
     }

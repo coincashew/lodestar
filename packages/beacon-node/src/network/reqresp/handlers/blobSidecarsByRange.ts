@@ -6,13 +6,13 @@ import {onBlocksOrBlobSidecarsByRange} from "./beaconBlocksByRange.js";
 
 // TODO DENEB: Unit test
 
-export function onBlobsSidecarsByRange(
+export function onBlobSidecarsByRange(
   request: deneb.BlobSidecarsByRangeRequest,
   chain: IBeaconChain,
   db: IBeaconDb
 ): AsyncIterable<EncodedPayloadBytes> {
   return onBlocksOrBlobSidecarsByRange(request, chain, {
-    finalized: db.blobSidecarArchive,
-    unfinalized: db.blobSidecar,
+    finalized: db.blobSidecarsArchive,
+    unfinalized: db.blobSidecars,
   });
 }

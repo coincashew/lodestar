@@ -120,7 +120,7 @@ export class BeaconChain implements IBeaconChain {
   readonly checkpointBalancesCache: CheckpointBalancesCache;
   // TODO DENEB: Prune data structure every time period, for both old entries
   /** Map keyed by executionPayload.blockHash of the block for those blobs */
-  readonly producedBlobSidecarsCache = new Map<RootHex, deneb.BlobSidecar[]>();
+  readonly producedBlobSidecarsCache = new Map<RootHex, {blobSidecars: deneb.BlobSidecars; slot: Slot}>();
   readonly opts: IChainOptions;
 
   protected readonly blockProcessor: BlockProcessor;
@@ -399,14 +399,7 @@ export class BeaconChain implements IBeaconChain {
     // publishing the blinded block's full version
     if (blobs.type === BlobsResultType.produced) {
       // TODO DENEB: Prune data structure for max entries
-      const blobSidecars = this.producedBlobSidecarsCache.get(blobs.blockHash) ?? [];
-      this.producedBlobSidecarsCache.set(blobs.blockHash, blobSidecars.push({
-        // TODO DENEB: Optimize, hashing the full block is not free.
-        beaconBlockRoot: this.config.getForkTypes(block.slot).BeaconBlock.hashTreeRoot(block),
-        beaconBlockSlot: block.slot,
-        blobs: blobs.blobs,
-        kzgAggregatedProof: ckzg.computeAggregateKzgProof(blobs.blobs),
-      }));
+      this.producedBlobSidecarsCache.set(blobs.blockHash, {blobSidecars: blobs.blobs, slot});
       pruneSetToMax(
         this.producedBlobSidecarsCache,
         this.opts.maxCachedBlobSidecars ?? DEFAULT_MAX_CACHED_BLOB_SIDECARS
@@ -426,9 +419,9 @@ export class BeaconChain implements IBeaconChain {
    *       kzg_aggregated_proof=compute_proof_from_blobs(blobs),
    *   )
    */
-  getBlobSidecars(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecar[] {
+  getBlobSidecars(beaconBlock: deneb.BeaconBlock): deneb.BlobSidecars {
     const blockHash = toHex(beaconBlock.body.executionPayload.blockHash);
-    const blobSidecars = this.producedBlobSidecarsCache.get(blockHash);
+    const {blobSidecars} = this.producedBlobSidecarsCache.get(blockHash) ?? {};
     if (!blobSidecars) {
       throw Error(`No blobSidecars for executionPayload.blockHash ${blockHash}`);
     }
@@ -651,8 +644,8 @@ export class BeaconChain implements IBeaconChain {
 
     // Prune old blobSidecars for block production, those are only useful on their slot
     if (this.config.getForkSeq(slot) >= ForkSeq.deneb && this.producedBlobSidecarsCache.size > 0) {
-      for (const [key, blobSidecars] of this.producedBlobSidecarsCache) {
-        if (slot > blobSidecars.beaconBlockSlot + MAX_RETAINED_SLOTS_CACHED_BLOBS_SIDECAR) {
+      for (const [key, {slot: blobSlot}] of this.producedBlobSidecarsCache) {
+        if (slot > blobSlot + MAX_RETAINED_SLOTS_CACHED_BLOBS_SIDECAR) {
           this.producedBlobSidecarsCache.delete(key);
         }
       }

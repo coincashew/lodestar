@@ -9,7 +9,7 @@ import {deneb, ssz} from "@lodestar/types";
  */
 export class BlobSidecarsRepository extends Repository<Uint8Array, deneb.BlobSidecars> {
   constructor(config: ChainForkConfig, db: Db) {
-    super(config, db, Bucket.allForks_blobSidecar, ssz.deneb.BlobSidecars);
+    super(config, db, Bucket.allForks_blobSidecars, ssz.deneb.BlobSidecars);
   }
 
   /**

@@ -184,11 +184,12 @@ export function getBeaconBlockApi({
       if (!executionBuilder) throw Error("exeutionBuilder required to publish SignedBlindedBeaconBlock");
       let signedBlock: allForks.SignedBeaconBlock;
       if (config.getForkSeq(signedBlindedBlock.message.slot) >= ForkSeq.deneb) {
-        const {beaconBlock, blobsSidecar} = await executionBuilder.submitBlindedBlockV2(signedBlindedBlock);
+        const {beaconBlock, blobSidecars} = await executionBuilder.submitBlindedBlockV2(signedBlindedBlock);
         signedBlock = beaconBlock;
         // add this blobs to the map for access & broadcasting in publishBlock
         const {blockHash} = signedBlindedBlock.message.body.executionPayloadHeader;
-        chain.producedBlobSidecarsCache.set(toHexString(blockHash), blobsSidecar);
+        const slot = signedBlindedBlock.message.slot;
+        chain.producedBlobSidecarsCache.set(toHexString(blockHash), {blobSidecars, slot});
         // TODO: Do we need to prune here ? prune will anyway be called in local execution flow
         // pruneSetToMax(
         //   chain.producedBlobSidecarsCache,
@@ -245,11 +246,11 @@ export function getBeaconBlockApi({
 
       const blockRoot = config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message);
 
-      let blobSidecar = await db.blobSidecar.get(blockRoot);
+      let blobSidecar = await db.blobSidecars.get(blockRoot);
       if (!blobSidecar) {
         blobSidecar = await db.blobSidecarsArchive.get(block.message.slot);
         if (!blobSidecar) {
-          throw Error("Not found in db")
+          throw Error("Not found in db");
         }
       }
       return {

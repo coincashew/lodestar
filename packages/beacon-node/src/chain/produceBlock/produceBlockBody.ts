@@ -70,7 +70,7 @@ export enum BlobsResultType {
 
 export type BlobsResult =
   | {type: BlobsResultType.preDeneb | BlobsResultType.blinded}
-  | {type: BlobsResultType.produced; blobs: deneb.Blobs; blockHash: RootHex};
+  | {type: BlobsResultType.produced; blobs: deneb.BlobSidecars; blockHash: RootHex};
 
 export async function produceBlockBody<T extends BlockType>(
   this: BeaconChain,
@@ -234,21 +234,25 @@ export async function produceBlockBody<T extends BlockType>(
             // After retrieving the execution payload from the execution engine as specified in Bellatrix, use the
             // payload_id to retrieve blobs and blob_kzg_commitments via get_blobs_and_kzg_commitments(payload_id)
             // TODO Deneb: getBlobsBundle and getPayload must be either coupled or called in parallel to save time.
-            const blobsBundle = await this.executionEngine.getBlobsBundle(payloadId);
 
-            // Sanity check consistency between getPayload() and getBlobsBundle()
+            // TODO freetheblobs: restore
+            // const blobsBundle = await this.executionEngine.getBlobsBundle(payloadId);
+
+            // // Sanity check consistency between getPayload() and getBlobsBundle()
             const blockHash = toHex(executionPayload.blockHash);
-            if (blobsBundle.blockHash !== blockHash) {
-              throw Error(`blobsBundle incorrect blockHash ${blobsBundle.blockHash} != ${blockHash}`);
-            }
+            // if (blobsBundle.blockHash !== blockHash) {
+            //   throw Error(`blobsBundle incorrect blockHash ${blobsBundle.blockHash} != ${blockHash}`);
+            // }
 
-            // Optionally sanity-check that the KZG commitments match the versioned hashes in the transactions
-            if (this.opts.sanityCheckExecutionEngineBlobs) {
-              validateBlobsAndKzgCommitments(executionPayload, blobsBundle);
-            }
+            // // Optionally sanity-check that the KZG commitments match the versioned hashes in the transactions
+            // if (this.opts.sanityCheckExecutionEngineBlobs) {
+            //   validateBlobsAndKzgCommitments(executionPayload, blobsBundle);
+            // }
 
-            (blockBody as deneb.BeaconBlockBody).blobKzgCommitments = blobsBundle.kzgs;
-            blobsResult = {type: BlobsResultType.produced, blobs: blobsBundle.blobs, blockHash};
+            // (blockBody as deneb.BeaconBlockBody).blobKzgCommitments = blobsBundle.kzgs;
+            (blockBody as deneb.BeaconBlockBody).blobKzgCommitments = ssz.deneb.BlobKzgCommitments.defaultValue();
+            const blobs = ssz.deneb.BlobSidecars.defaultValue();
+            blobsResult = {type: BlobsResultType.produced, blobs, blockHash};
           } else {
             blobsResult = {type: BlobsResultType.preDeneb};
           }

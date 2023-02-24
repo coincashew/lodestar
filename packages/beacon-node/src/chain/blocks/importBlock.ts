@@ -71,9 +71,9 @@ export async function importBlock(
     // NOTE: Old blobs are pruned on archive
     await this.db.blobSidecars.add(blobs);
     this.logger.debug("Persisted blobSidecars to hot DB", {
-      blobsLen: blobs.blobs.length,
-      slot: blobs.beaconBlockSlot,
-      root: toHexString(blobs.beaconBlockRoot),
+      blobsLen: blobs.length,
+      slot: block.message.slot,
+      root: blockRootHex,
     });
   }
 

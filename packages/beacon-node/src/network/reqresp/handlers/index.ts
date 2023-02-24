@@ -16,7 +16,7 @@ export interface ReqRespHandlers {
   onStatus: HandlerTypeFromMessage<typeof protocols.Status>;
   onBeaconBlocksByRange: HandlerTypeFromMessage<typeof protocols.BeaconBlocksByRange>;
   onBeaconBlocksByRoot: HandlerTypeFromMessage<typeof protocols.BeaconBlocksByRoot>;
-  onBlobSidecarByRoot: HandlerTypeFromMessage<typeof protocols.BlobSidecarsByRoot>;
+  onBlobSidecarsByRoot: HandlerTypeFromMessage<typeof protocols.BlobSidecarsByRoot>;
   onBlobSidecarsByRange: HandlerTypeFromMessage<typeof protocols.BlobSidecarsByRange>;
   onLightClientBootstrap: HandlerTypeFromMessage<typeof protocols.LightClientBootstrap>;
   onLightClientUpdatesByRange: HandlerTypeFromMessage<typeof protocols.LightClientUpdatesByRange>;
@@ -41,8 +41,8 @@ export function getReqRespHandlers({db, chain}: {db: IBeaconDb; chain: IBeaconCh
     async *onBlobSidecarsByRoot(req) {
       yield* onBlobSidecarsByRoot(req, chain, db);
     },
-    async *onBlobsSidecarsByRange(req) {
-      yield* onBlobsSidecarsByRange(req, chain, db);
+    async *onBlobSidecarsByRange(req) {
+      yield* onBlobSidecarsByRange(req, chain, db);
     },
     async *onLightClientBootstrap(req) {
       yield* onLightClientBootstrap(req, chain);

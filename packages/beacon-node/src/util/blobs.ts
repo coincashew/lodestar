@@ -14,11 +14,12 @@ function getEmptyKzgAggregatedProof(): Uint8Array {
 /**
  * Construct a valid BlobSidecar for a SignedBeaconBlock that references 0 commitments
  */
-export function getEmptyBlobSidecar(config: ChainForkConfig, block: deneb.SignedBeaconBlock): deneb.BlobSidecar {
-  return {
-    beaconBlockRoot: config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message),
-    beaconBlockSlot: block.message.slot,
-    blobs: [],
-    kzgAggregatedProof: getEmptyKzgAggregatedProof(),
-  };
-}
+// TODO: freetheblobs : remove this?
+// export function getEmptyBlobSidecar(config: ChainForkConfig, block: deneb.SignedBeaconBlock): deneb.BlobSidecar {
+//   return {
+//     beaconBlockRoot: config.getForkTypes(block.message.slot).BeaconBlock.hashTreeRoot(block.message),
+//     beaconBlockSlot: block.message.slot,
+//     blobs: [],
+//     kzgAggregatedProof: getEmptyKzgAggregatedProof(),
+//   };
+// }

@@ -88,7 +88,7 @@ export interface IBeaconChain {
 
   readonly beaconProposerCache: BeaconProposerCache;
   readonly checkpointBalancesCache: CheckpointBalancesCache;
-  readonly producedBlobSidecarsCache: Map<RootHex, deneb.BlobSidecar[]>;
+  readonly producedBlobSidecarsCache: Map<RootHex, {blobSidecars: deneb.BlobSidecars; slot: Slot}>;
   readonly opts: IChainOptions;
 
   /** Stop beacon chain processing */

@@ -2,7 +2,7 @@ import bls from "@chainsafe/bls";
 import {CoordType} from "@chainsafe/bls/types";
 import {ChainForkConfig} from "@lodestar/config";
 import {deneb, Root, ssz, Slot} from "@lodestar/types";
-import {bytesToBigInt} from "@lodestar/utils";
+import {bytesToBigInt, toHex} from "@lodestar/utils";
 import {BYTES_PER_FIELD_ELEMENT, FIELD_ELEMENTS_PER_BLOB} from "@lodestar/params";
 import {verifyKzgCommitmentsAgainstTransactions} from "@lodestar/state-transition";
 import {BlobSidecarError, BlobSidecarErrorCode} from "../errors/blobSidecarError.js";
@@ -44,32 +44,50 @@ export function validateGossipBlobSidecar(
 export function validateBlobSidecars(
   blockSlot: Slot,
   blockRoot: Root,
-  expectedKzgCommitments: deneb.KZGCommitment[],
-  blobs: deneb.BlobSidecar[]
+  expectedKzgCommitments: deneb.BlobKzgCommitments,
+  blobSidecars: deneb.BlobSidecars
 ): void {
-  // TODO: freetheblobs-restore
-  // // assert len(expected_kzg_commitments) == len(blobs)
-  // if (expectedKzgCommitments.length !== blobs.length) {
-  //   throw new Error(
-  //     `blobs length to commitments length mismatch. Blob length: ${blobs.length}, Expected commitments length ${expectedKzgCommitments.length}`
-  //   );
-  // }
-  // // No need to verify the aggregate proof of zero blobs. Also c-kzg throws.
-  // // https://github.com/dankrad/c-kzg/pull/12/files#r1025851956
-  // if (blobs.length > 0) {
-  //   // assert verify_aggregate_kzg_proof(blobs, expected_kzg_commitments, kzg_aggregated_proof)
-  //   let isProofValid: boolean;
-  //   try {
-  //     isProofValid = ckzg.verifyBlobKzgProofBatch(blobs, expectedKzgCommitments, proofs);
-  //   } catch (e) {
-  //     (e as Error).message = `Error on verifyAggregateKzgProof: ${(e as Error).message}`;
-  //     throw e;
-  //   }
-  //   // TODO DENEB: TEMP Nov17: May always throw error -- we need to fix Geth's KZG to match C-KZG and the trusted setup used here
-  //   if (!isProofValid) {
-  //     throw Error("Invalid AggregateKzgProof");
-  //   }
-  // }
+  // assert len(expected_kzg_commitments) == len(blobs)
+  if (expectedKzgCommitments.length !== blobSidecars.length) {
+    throw new Error(
+      `blobSidecars length to commitments length mismatch. Blob length: ${blobSidecars.length}, Expected commitments length ${expectedKzgCommitments.length}`
+    );
+  }
+  // No need to verify the aggregate proof of zero blobs. Also c-kzg throws.
+  // https://github.com/dankrad/c-kzg/pull/12/files#r1025851956
+  if (blobSidecars.length > 0) {
+    // Verify the blob slot and root matches
+    const blobs = [];
+    const proofs = [];
+    for (let index = 0; index < blobSidecars.length; index++) {
+      const blobSidecar = blobSidecars[index];
+      if (
+        blobSidecar.slot !== blockSlot ||
+        !byteArrayEquals(blobSidecar.blockRoot, blockRoot) ||
+        blobSidecar.index !== index ||
+        !byteArrayEquals(expectedKzgCommitments[index], blobSidecar.kzgCommitment)
+      ) {
+        throw new Error(
+          `Invalid blob with slot=${blobSidecar.slot} blockRoot=${toHex(blockRoot)} index=${
+            blobSidecar.index
+          } for the block root=${toHex(blockRoot)} slot=${blockSlot} index=${index}`
+        );
+      }
+      blobs.push(blobSidecar.blob);
+      proofs.push(blobSidecar.kzgProof);
+    }
+    // assert verify_aggregate_kzg_proof(blobs, expected_kzg_commitments, kzg_aggregated_proof)
+    let isProofValid: boolean;
+    try {
+      isProofValid = ckzg.verifyBlobKzgProofBatch(blobs, expectedKzgCommitments, proofs);
+    } catch (e) {
+      (e as Error).message = `Error on verifyAggregateKzgProof: ${(e as Error).message}`;
+      throw e;
+    }
+    if (!isProofValid) {
+      throw Error("Invalid AggregateKzgProof");
+    }
+  }
 }
 
 /**

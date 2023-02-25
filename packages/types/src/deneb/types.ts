@@ -10,6 +10,7 @@ export type BlobSidecars = ValueOf<typeof ssz.BlobSidecars>;
 export type SignedBlobSidecar = ValueOf<typeof ssz.SignedBlobSidecar>;
 export type BlobIdentifier = ValueOf<typeof ssz.BlobIdentifier>;
 export type BlobKzgCommitments = ValueOf<typeof ssz.BlobKzgCommitments>;
+export type KZGProofs = ValueOf<typeof ssz.KZGProofs>;
 export type Polynomial = ValueOf<typeof ssz.Polynomial>;
 export type PolynomialAndCommitment = ValueOf<typeof ssz.PolynomialAndCommitment>;
 export type BLSFieldElement = ValueOf<typeof ssz.BLSFieldElement>;

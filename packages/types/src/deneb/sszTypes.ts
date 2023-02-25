@@ -49,6 +49,7 @@ export const Blob = new ByteVectorType(BYTES_PER_FIELD_ELEMENT * FIELD_ELEMENTS_
 export const Blobs = new ListCompositeType(Blob, MAX_BLOBS_PER_BLOCK);
 export const VersionedHash = Bytes32;
 export const BlobKzgCommitments = new ListCompositeType(KZGCommitment, MAX_BLOBS_PER_BLOCK);
+export const KZGProofs = new ListCompositeType(KZGProof, MAX_BLOBS_PER_BLOCK);
 
 // Constants
 

@@ -235,10 +235,9 @@ export async function produceBlockBody<T extends BlockType>(
             // After retrieving the execution payload from the execution engine as specified in Bellatrix, use the
             // payload_id to retrieve blobs and blob_kzg_commitments via get_blobs_and_kzg_commitments(payload_id)
             // TODO Deneb: getBlobsBundle and getPayload must be either coupled or called in parallel to save time.
-
             const blobsBundle = await this.executionEngine.getBlobsBundle(payloadId);
 
-            // // Sanity check consistency between getPayload() and getBlobsBundle()
+            // Sanity check consistency between getPayload() and getBlobsBundle()
             const blockHash = toHex(executionPayload.blockHash);
             if (blobsBundle.blockHash !== blockHash) {
               throw Error(`blobsBundle incorrect blockHash ${blobsBundle.blockHash} != ${blockHash}`);

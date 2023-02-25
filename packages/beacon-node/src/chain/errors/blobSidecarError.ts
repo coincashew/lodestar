@@ -17,7 +17,7 @@ export enum BlobSidecarErrorCode {
 
 export type BlobSidecarErrorType =
   | {code: BlobSidecarErrorCode.INVALID_INDEX; blobIdx: number; gossipIndex: number}
-  | {code: BlobSidecarErrorCode.INVALID_KZG; kzgIdx: number}
+  | {code: BlobSidecarErrorCode.INVALID_KZG; blobIdx: number}
   | {code: BlobSidecarErrorCode.INVALID_KZG_TXS}
   | {code: BlobSidecarErrorCode.INCORRECT_SLOT; blockSlot: Slot; blobSlot: Slot; blobIdx: number}
   | {code: BlobSidecarErrorCode.INVALID_BLOB; blobIdx: number}

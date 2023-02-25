@@ -129,10 +129,13 @@ function maybeValidateBlobs(
 
       const {block, blobs} = blockInput;
       const blockSlot = block.message.slot;
-      const {blobKzgCommitments} = (block as deneb.SignedBeaconBlock).message.body;
+      const {
+        blobKzgCommitments,
+        executionPayload: {transactions},
+      } = (block as deneb.SignedBeaconBlock).message.body;
       const beaconBlockRoot = config.getForkTypes(blockSlot).BeaconBlock.hashTreeRoot(block.message);
       // TODO Deneb: This function throws un-typed errors
-      validateBlobSidecars(blockSlot, beaconBlockRoot, blobKzgCommitments, blobs);
+      validateBlobSidecars(blockSlot, beaconBlockRoot, transactions, blobKzgCommitments, blobs);
 
       return DataAvailableStatus.available;
     }

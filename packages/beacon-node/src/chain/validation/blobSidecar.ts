@@ -1,7 +1,7 @@
 import bls from "@chainsafe/bls";
 import {CoordType} from "@chainsafe/bls/types";
 import {ChainForkConfig} from "@lodestar/config";
-import {deneb, Root, ssz, Slot} from "@lodestar/types";
+import {deneb, Root, ssz, Slot, bellatrix} from "@lodestar/types";
 import {bytesToBigInt, toHex} from "@lodestar/utils";
 import {BYTES_PER_FIELD_ELEMENT, FIELD_ELEMENTS_PER_BLOB} from "@lodestar/params";
 import {verifyKzgCommitmentsAgainstTransactions} from "@lodestar/state-transition";
@@ -33,6 +33,17 @@ export function validateGossipBlobSidecar(
       blobIdx: blobSidecar.index,
     });
   }
+
+  if (!blsKeyValidate(blobSidecar.kzgCommitment)) {
+    throw new BlobSidecarError(GossipAction.REJECT, {
+      code: BlobSidecarErrorCode.INVALID_KZG,
+      blobIdx: blobSidecar.index,
+    });
+  }
+
+  // verifyKzgCommitmentsAgainstTransactions will need to be done while block verification when block
+  // would also be available
+
   // [REJECT] The KZG proof is a correctly encoded compressed BLS G1 Point
   // -- i.e. blsKeyValidate(blobs_sidecar.kzg_aggregated_proof)
   if (!blsKeyValidate(blobSidecar.kzgProof)) {
@@ -49,15 +60,22 @@ export function validateGossipBlobSidecar(
 export function validateBlobSidecars(
   blockSlot: Slot,
   blockRoot: Root,
+  transactions: bellatrix.Transactions,
   expectedKzgCommitments: deneb.BlobKzgCommitments,
   blobSidecars: deneb.BlobSidecars
 ): void {
+  // TODO: freetheblobs
+  if (!verifyKzgCommitmentsAgainstTransactions(transactions, expectedKzgCommitments)) {
+    throw new Error("Invalid block transactions and commitments");
+  }
+
   // assert len(expected_kzg_commitments) == len(blobs)
   if (expectedKzgCommitments.length !== blobSidecars.length) {
     throw new Error(
       `blobSidecars length to commitments length mismatch. Blob length: ${blobSidecars.length}, Expected commitments length ${expectedKzgCommitments.length}`
     );
   }
+
   // No need to verify the aggregate proof of zero blobs. Also c-kzg throws.
   // https://github.com/dankrad/c-kzg/pull/12/files#r1025851956
   if (blobSidecars.length > 0) {

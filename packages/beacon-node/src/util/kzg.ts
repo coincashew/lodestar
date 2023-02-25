@@ -16,7 +16,7 @@ export let ckzg: {
   freeTrustedSetup(): void;
   loadTrustedSetup(filePath: string): void;
   blobToKzgCommitment(blob: Uint8Array): Uint8Array;
-  computeAggregateKzgProof(blobs: Uint8Array[]): Uint8Array;
+  computeKzgProof(blobs: Uint8Array[], index: number): Uint8Array;
   verifyBlobKzgProofBatch(
     blobs: Uint8Array[],
     expectedKzgCommitments: Uint8Array[],
@@ -26,7 +26,7 @@ export let ckzg: {
   freeTrustedSetup: ckzgNotLoaded,
   loadTrustedSetup: ckzgNotLoaded,
   blobToKzgCommitment: ckzgNotLoaded,
-  computeAggregateKzgProof: ckzgNotLoaded,
+  computeKzgProof: ckzgNotLoaded,
   verifyBlobKzgProofBatch: ckzgNotLoaded,
 };
 

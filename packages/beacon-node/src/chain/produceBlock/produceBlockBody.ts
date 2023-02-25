@@ -35,6 +35,7 @@ import {PayloadId, IExecutionEngine, IExecutionBuilder, PayloadAttributes} from 
 import {ZERO_HASH, ZERO_HASH_HEX} from "../../constants/index.js";
 import {IEth1ForBlockProduction} from "../../eth1/index.js";
 import {numToQuantity} from "../../eth1/provider/utils.js";
+import {ckzg} from "../../util/kzg.js";
 import {validateBlobsAndKzgCommitments} from "./validateBlobsAndKzgCommitments.js";
 
 // Time to provide the EL to generate a payload from new payload id
@@ -70,7 +71,7 @@ export enum BlobsResultType {
 
 export type BlobsResult =
   | {type: BlobsResultType.preDeneb | BlobsResultType.blinded}
-  | {type: BlobsResultType.produced; blobs: deneb.BlobSidecars; blockHash: RootHex};
+  | {type: BlobsResultType.produced; blobSidecars: deneb.BlobSidecars; blockHash: RootHex};
 
 export async function produceBlockBody<T extends BlockType>(
   this: BeaconChain,
@@ -235,24 +236,30 @@ export async function produceBlockBody<T extends BlockType>(
             // payload_id to retrieve blobs and blob_kzg_commitments via get_blobs_and_kzg_commitments(payload_id)
             // TODO Deneb: getBlobsBundle and getPayload must be either coupled or called in parallel to save time.
 
-            // TODO freetheblobs: restore
-            // const blobsBundle = await this.executionEngine.getBlobsBundle(payloadId);
+            const blobsBundle = await this.executionEngine.getBlobsBundle(payloadId);
 
             // // Sanity check consistency between getPayload() and getBlobsBundle()
             const blockHash = toHex(executionPayload.blockHash);
-            // if (blobsBundle.blockHash !== blockHash) {
-            //   throw Error(`blobsBundle incorrect blockHash ${blobsBundle.blockHash} != ${blockHash}`);
-            // }
+            if (blobsBundle.blockHash !== blockHash) {
+              throw Error(`blobsBundle incorrect blockHash ${blobsBundle.blockHash} != ${blockHash}`);
+            }
 
-            // // Optionally sanity-check that the KZG commitments match the versioned hashes in the transactions
-            // if (this.opts.sanityCheckExecutionEngineBlobs) {
-            //   validateBlobsAndKzgCommitments(executionPayload, blobsBundle);
-            // }
+            // Optionally sanity-check that the KZG commitments match the versioned hashes in the transactions
+            if (this.opts.sanityCheckExecutionEngineBlobs) {
+              validateBlobsAndKzgCommitments(executionPayload, blobsBundle);
+            }
 
-            // (blockBody as deneb.BeaconBlockBody).blobKzgCommitments = blobsBundle.kzgs;
-            (blockBody as deneb.BeaconBlockBody).blobKzgCommitments = ssz.deneb.BlobKzgCommitments.defaultValue();
-            const blobs = ssz.deneb.BlobSidecars.defaultValue();
-            blobsResult = {type: BlobsResultType.produced, blobs, blockHash};
+            (blockBody as deneb.BeaconBlockBody).blobKzgCommitments = blobsBundle.kzgs;
+            const blobSidecars = Array.from({length: blobsBundle.blobs.length}, (_v, index) => {
+              const blobSidecar = {
+                index,
+                blob: blobsBundle.blobs[index],
+                kzgProof: ckzg.computeKzgProof(blobsBundle.blobs, index),
+                kzgCommitment: blobsBundle.kzgs[index],
+              };
+              return blobSidecar;
+            }) as deneb.BlobSidecars;
+            blobsResult = {type: BlobsResultType.produced, blobSidecars, blockHash};
           } else {
             blobsResult = {type: BlobsResultType.preDeneb};
           }

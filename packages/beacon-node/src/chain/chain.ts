@@ -24,7 +24,6 @@ import {IBeaconDb} from "../db/index.js";
 import {Metrics} from "../metrics/index.js";
 import {bytesToData, numToQuantity} from "../eth1/provider/utils.js";
 import {wrapError} from "../util/wrapError.js";
-import {ckzg} from "../util/kzg.js";
 import {IEth1ForBlockProduction} from "../eth1/index.js";
 import {IExecutionEngine, IExecutionBuilder, TransitionConfigurationV1} from "../execution/index.js";
 import {ensureDir, writeIfNotExist} from "../util/file.js";
@@ -399,7 +398,8 @@ export class BeaconChain implements IBeaconChain {
     // publishing the blinded block's full version
     if (blobs.type === BlobsResultType.produced) {
       // TODO DENEB: Prune data structure for max entries
-      this.producedBlobSidecarsCache.set(blobs.blockHash, {blobSidecars: blobs.blobs, slot});
+      const {blobSidecars} = blobs;
+      this.producedBlobSidecarsCache.set(blobs.blockHash, {blobSidecars, slot});
       pruneSetToMax(
         this.producedBlobSidecarsCache,
         this.opts.maxCachedBlobSidecars ?? DEFAULT_MAX_CACHED_BLOB_SIDECARS

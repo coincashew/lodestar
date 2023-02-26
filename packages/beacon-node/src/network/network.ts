@@ -325,18 +325,6 @@ export class Network implements INetwork {
     return this.peerManager.hasSomeConnectedPeer();
   }
 
-  async publishBeaconBlockMaybeBlobs(blockInput: BlockInput): Promise<void> {
-    await Promise.all([
-      this.gossip.publishBeaconBlock(blockInput.block),
-      ...(blockInput.type === BlockInputType.postDeneb
-        ? // TODO: freetheblobs
-          // blockInput.blobs.map(blobSideCar=>this.gossip.publishSignedBlobSidecar(blobSideCar))
-          []
-        : []),
-    ]);
-    return;
-  }
-
   async beaconBlocksMaybeBlobsByRange(
     peerId: PeerId,
     request: phase0.BeaconBlocksByRangeRequest

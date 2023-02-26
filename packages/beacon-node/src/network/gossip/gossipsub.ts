@@ -199,7 +199,7 @@ export class Eth2Gossipsub extends GossipSub {
     await this.publishObject<GossipType.beacon_block>({type: GossipType.beacon_block, fork}, signedBlock);
   }
 
-  async publishSignedBlobSidecar(item: deneb.SignedBlobSidecar): Promise<void> {
+  async publishBlobSidecar(item: deneb.SignedBlobSidecar): Promise<void> {
     const fork = this.config.getForkName(item.message.slot);
     const {index} = item.message;
     await this.publishObject<GossipType.blob_sidecar>({type: GossipType.blob_sidecar, index, fork}, item);

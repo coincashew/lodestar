@@ -5,7 +5,7 @@ import {Multiaddr} from "@multiformats/multiaddr";
 import {PeerId} from "@libp2p/interface-peer-id";
 import {ConnectionManager} from "@libp2p/interface-connection-manager";
 import {SignableENR} from "@chainsafe/discv5";
-import {phase0} from "@lodestar/types";
+import {phase0, allForks, deneb} from "@lodestar/types";
 import {BlockInput} from "../chain/blocks/types.js";
 import {INetworkEventBus} from "./events.js";
 import {Eth2Gossipsub} from "./gossip/index.js";
@@ -37,7 +37,6 @@ export interface INetwork {
   getConnectedPeers(): PeerId[];
   hasSomeConnectedPeer(): boolean;
 
-  publishBeaconBlockMaybeBlobs(signedBlock: BlockInput): Promise<void>;
   beaconBlocksMaybeBlobsByRange(peerId: PeerId, request: phase0.BeaconBlocksByRangeRequest): Promise<BlockInput[]>;
   beaconBlocksMaybeBlobsByRoot(peerId: PeerId, request: phase0.BeaconBlocksByRootRequest): Promise<BlockInput[]>;
 

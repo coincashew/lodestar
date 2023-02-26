@@ -199,6 +199,20 @@ export type Api = {
       [HttpStatusCode.OK]: {executionOptimistic: ExecutionOptimistic; data: deneb.BlobSidecars};
     }>
   >;
+  /**
+   * Publish a signed blob.
+   */
+  publishBlob(
+    blob: deneb.SignedBlobSidecar
+  ): Promise<
+    ApiClientResponse<
+      {
+        [HttpStatusCode.OK]: void;
+        [HttpStatusCode.ACCEPTED]: void;
+      },
+      HttpStatusCode.BAD_REQUEST | HttpStatusCode.SERVICE_UNAVAILABLE
+    >
+  >;
 };
 
 /**
@@ -214,6 +228,7 @@ export const routesData: RoutesData<Api> = {
   publishBlock: {url: "/eth/v1/beacon/blocks", method: "POST"},
   publishBlindedBlock: {url: "/eth/v1/beacon/blinded_blocks", method: "POST"},
   getBlobSidecars: {url: "/eth/v1/beacon/blob_sidecars/{block_id}", method: "GET"},
+  publishBlob: {url: "/eth/v1/beacon/blob_sidecars", method: "POST"},
 };
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -230,6 +245,7 @@ export type ReqTypes = {
   publishBlock: {body: unknown};
   publishBlindedBlock: {body: unknown};
   getBlobSidecars: BlockIdOnlyReq;
+  publishBlob: {body: unknown};
 };
 
 export function getReqSerializers(config: ChainForkConfig): ReqSerializers<Api, ReqTypes> {
@@ -273,6 +289,7 @@ export function getReqSerializers(config: ChainForkConfig): ReqSerializers<Api, 
     publishBlock: reqOnlyBody(AllForksSignedBeaconBlock, Schema.Object),
     publishBlindedBlock: reqOnlyBody(AllForksSignedBlindedBeaconBlock, Schema.Object),
     getBlobSidecars: blockIdOnlyReq,
+    publishBlob: reqOnlyBody(ssz.deneb.SignedBlobSidecar, Schema.Object),
   };
 }
 

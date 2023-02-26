@@ -213,32 +213,22 @@ export function getBeaconBlockApi({
       }
 
       // TODO: Validate block
-
       metrics?.registerBeaconBlock(OpSource.api, seenTimestampSec, signedBlock.message);
+      return network.gossip.publishBeaconBlock(signedBlock);
+    },
 
-      // TODO Deneb: Open question if broadcast to both block topic + block_and_blobs topic
-      const blockForImport =
-        config.getForkSeq(signedBlock.message.slot) >= ForkSeq.deneb
-          ? getBlockInput.postDeneb(
-              config,
-              signedBlock,
-              chain.getBlobSidecars(signedBlock.message as deneb.BeaconBlock)
-            )
-          : getBlockInput.preDeneb(config, signedBlock);
+    async publishBlob(signedBlob) {
+      const seenTimestampSec = Date.now() / 1000;
 
-      await promiseAllMaybeAsync([
-        // Send the block, regardless of whether or not it is valid. The API
-        // specification is very clear that this is the desired behaviour.
-        () => network.publishBeaconBlockMaybeBlobs(blockForImport),
-
-        () =>
-          chain.processBlock(blockForImport).catch((e) => {
-            if (e instanceof BlockError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
-              network.events.emit(NetworkEvent.unknownBlockParent, blockForImport, network.peerId.toString());
-            }
-            throw e;
-          }),
-      ]);
+      // Simple implementation of a pending block queue. Keeping the block here recycles the API logic, and keeps the
+      // REST request promise without any extra infrastructure.
+      const msToBlockSlot = computeTimeAtSlot(config, signedBlob.message.slot, chain.genesisTime) * 1000 - Date.now();
+      if (msToBlockSlot <= MAX_API_CLOCK_DISPARITY_MS && msToBlockSlot > 0) {
+        // If block is a bit early, hold it in a promise. Equivalent to a pending queue.
+        await sleep(msToBlockSlot);
+      }
+      metrics?.registerBlobSideCar(OpSource.api, seenTimestampSec, signedBlob.message);
+      return network.gossip.publishBlobSidecar(signedBlob);
     },
 
     async getBlobSidecars(blockId) {

@@ -21,8 +21,7 @@ export class BlobSidecarsArchiveRepository extends Repository<Slot, deneb.BlobSi
     super(config, db, Bucket.allForks_blobSidecarsArchive, ssz.deneb.BlobSidecars);
   }
 
-  // TODO: deneb involve slot to store the blob?
-
+  // Handle key as slot
   getId(value: deneb.BlobSidecars): Slot {
     const {slot} = value[0];
     return slot;

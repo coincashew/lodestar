@@ -16,9 +16,11 @@ const BLS_MODULUS = BigInt("5243587517512619047944774050818596583769055250052763
 export function validateGossipBlobSidecar(
   config: ChainForkConfig,
   chain: IBeaconChain,
-  blobSidecar: deneb.BlobSidecar,
+  signedBlobSidecar: deneb.SignedBlobSidecar,
   gossipIndex: number
 ): void {
+  const blobSidecar = signedBlobSidecar.message;
+  // TODO: freetheblobs - validate blob signature
   if (blobSidecar.index !== gossipIndex) {
     throw new BlobSidecarError(GossipAction.REJECT, {
       code: BlobSidecarErrorCode.INVALID_INDEX,

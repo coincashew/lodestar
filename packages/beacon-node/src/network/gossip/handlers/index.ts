@@ -1,7 +1,7 @@
 import {peerIdFromString} from "@libp2p/peer-id";
 import {toHexString} from "@chainsafe/ssz";
 import {BeaconConfig} from "@lodestar/config";
-import {phase0, ssz, deneb} from "@lodestar/types";
+import {phase0, ssz, deneb, allForks, RootHex} from "@lodestar/types";
 import {Logger, prettyBytes} from "@lodestar/utils";
 import {ForkName, ForkSeq} from "@lodestar/params";
 import {Metrics} from "../../../metrics/index.js";
@@ -62,6 +62,15 @@ type ValidatorFnsModules = {
   peerRpcScores: PeerRpcScoreStore;
 };
 
+enum GossipedInputType {
+  block = "block",
+  blob = "blob",
+}
+type GossipedBlockInput =
+  | {type: GossipedInputType.block; signedBlock: allForks.SignedBeaconBlock}
+  | {type: GossipedInputType.blob; signedBlob: deneb.SignedBlobSidecar};
+type BlockInputCacheType = {block?: allForks.SignedBeaconBlock; blobs: Map<number, deneb.BlobSidecar>};
+
 const MAX_UNKNOWN_BLOCK_ROOT_RETRIES = 1;
 
 /**
@@ -80,6 +89,46 @@ const MAX_UNKNOWN_BLOCK_ROOT_RETRIES = 1;
  */
 export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipHandlerOpts): GossipHandlers {
   const {attnetsService, chain, config, metrics, networkEventBus, peerRpcScores, logger} = modules;
+  const blockInputCache = new Map<RootHex, BlockInputCacheType>();
+
+  function getFullBlockInput(gossipedInput: GossipedBlockInput): BlockInput | null {
+    let blockHex;
+    let blockCache;
+    if (gossipedInput.type === GossipedInputType.block) {
+      const {signedBlock} = gossipedInput;
+      blockHex = toHexString(
+        config.getForkTypes(signedBlock.message.slot).BeaconBlock.hashTreeRoot(signedBlock.message)
+      );
+      blockCache = blockInputCache.get(blockHex) ?? {blobs: new Map<number, deneb.BlobSidecar>()};
+      blockCache.block = signedBlock;
+    } else {
+      const {signedBlob} = gossipedInput;
+      blockHex = toHexString(signedBlob.message.blockRoot);
+      blockCache = blockInputCache.get(blockHex) ?? {blobs: new Map<number, deneb.BlobSidecar>()};
+      // TODO: freetheblobs check if its the same blob or a duplicate and throw/take actions
+      blockCache.blobs.set(signedBlob.message.index, signedBlob.message);
+    }
+    blockInputCache.set(blockHex, blockCache);
+    const {block: signedBlock} = blockCache;
+    if (signedBlock !== undefined) {
+      const {blobKzgCommitments} = (signedBlock as deneb.SignedBeaconBlock).message.body;
+      if (blobKzgCommitments.length > blockCache.blobs.size) {
+        throw Error("Received more blobs than commitments");
+      }
+      if (blobKzgCommitments.length === blockCache.blobs.size) {
+        const blobSidecars = [];
+        for (let index = 0; index < blobKzgCommitments.length; index++) {
+          const blobSidecar = blockCache.blobs.get(index);
+          if (blobSidecar === undefined) {
+            throw Error("Missing blobSidecar");
+          }
+          blobSidecars.push(blobSidecar);
+        }
+        return getBlockInput.postDeneb(config, signedBlock, blobSidecars);
+      }
+    }
+    return null;
+  }
 
   async function validateBeaconBlock(
     blockInput: BlockInput,
@@ -119,37 +168,6 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
 
       throw e;
     }
-  }
-
-  async function validateBlobSidecar(blobSidecar: deneb.SignedBlobSidecar, index: number): Promise<void> {
-    // TODO: freetheblobs
-    // const slot = blobSideCar.message.slot;
-    // const forkTypes = config.getForkTypes(slot);
-    // const delaySec = chain.clock.secFromSlot(slot, seenTimestampSec);
-    // const recvToVal = Date.now() / 1000 - seenTimestampSec;
-    // metrics?.gossipBlock.receivedToGossipValidate.observe(recvToVal);
-    // logger.verbose("Received gossip blob", {
-    //   slot: slot,
-    //   root: blockHex,
-    //   curentSlot: chain.clock.currentSlot,
-    //   peerId: peerIdStr,
-    //   delaySec,
-    //   recvToVal,
-    // });
-    // try {
-    //   await validateGossipBlobSidecar(config, chain, blobSidecar, fork);
-    // } catch (e) {
-    //   if (e instanceof BlockGossipError) {
-    //     if (e instanceof BlockGossipError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
-    //       logger.debug("Gossip block has error", {slot, root: blockHex, code: e.type.code});
-    //       networkEventBus.emit(NetworkEvent.unknownBlockParent, blockInput, peerIdStr);
-    //     }
-    //   }
-    //   if (e instanceof BlockGossipError && e.action === GossipAction.REJECT) {
-    //     chain.persistInvalidSszValue(forkTypes.SignedBeaconBlock, signedBlock, `gossip_reject_slot_${slot}`);
-    //   }
-    //   throw e;
-    // }
   }
 
   function handleValidBeaconBlock(blockInput: BlockInput, peerIdStr: string, seenTimestampSec: number): void {
@@ -198,25 +216,30 @@ export function getGossipHandlers(modules: ValidatorFnsModules, options: GossipH
 
   return {
     [GossipType.beacon_block]: async (signedBlock, topic, peerIdStr, seenTimestampSec) => {
-      // TODO Deneb: Can blocks be received by this topic?
+      let blockInput;
       if (config.getForkSeq(signedBlock.message.slot) >= ForkSeq.deneb) {
-        throw new GossipActionError(GossipAction.REJECT, {code: "POST_DENEB_BLOCK"});
+        blockInput = getFullBlockInput({type: GossipedInputType.block, signedBlock});
+      } else {
+        blockInput = getBlockInput.preDeneb(config, signedBlock);
       }
-
-      const blockInput = getBlockInput.preDeneb(config, signedBlock);
-      await validateBeaconBlock(blockInput, topic.fork, peerIdStr, seenTimestampSec);
-      handleValidBeaconBlock(blockInput, peerIdStr, seenTimestampSec);
+      if (blockInput !== null) {
+        await validateBeaconBlock(blockInput, topic.fork, peerIdStr, seenTimestampSec);
+        handleValidBeaconBlock(blockInput, peerIdStr, seenTimestampSec);
+      }
     },
 
-    [GossipType.blob_sidecar]: async (signedBlob, {index}, peerIdStr, seenTimestampSec) => {
+    [GossipType.blob_sidecar]: async (signedBlob, topic, peerIdStr, seenTimestampSec) => {
       if (config.getForkSeq(signedBlob.message.slot) < ForkSeq.deneb) {
         throw new GossipActionError(GossipAction.REJECT, {code: "PRE_DENEB_BLOCK"});
       }
 
       // Validate block + blob. Then forward, then handle both
-      validateBlobSidecar(signedBlob, index);
-      // TODO: freetheblobs
-      // handleValidSignedBlob(signedBlob, peerIdStr, seenTimestampSec);
+      validateGossipBlobSidecar(config, chain, signedBlob, topic.index);
+      const blockInput = getFullBlockInput({type: GossipedInputType.blob, signedBlob});
+      if (blockInput !== null) {
+        await validateBeaconBlock(blockInput, topic.fork, peerIdStr, seenTimestampSec);
+        handleValidBeaconBlock(blockInput, peerIdStr, seenTimestampSec);
+      }
     },
 
     [GossipType.beacon_aggregate_and_proof]: async (signedAggregateAndProof, _topic, _peer, seenTimestampSec) => {

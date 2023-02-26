@@ -1,8 +1,9 @@
 import {CachedBeaconStateAllForks, computeEpochAtSlot} from "@lodestar/state-transition";
 import {MaybeValidExecutionStatus} from "@lodestar/fork-choice";
-import {allForks, deneb, Slot} from "@lodestar/types";
+import {allForks, deneb, Slot, RootHex} from "@lodestar/types";
 import {ForkSeq} from "@lodestar/params";
 import {ChainForkConfig} from "@lodestar/config";
+import {toHexString} from "@chainsafe/ssz";
 
 export enum BlockInputType {
   preDeneb = "preDeneb",
@@ -21,7 +22,57 @@ export function blockRequiresBlobs(config: ChainForkConfig, blockSlot: Slot, clo
   );
 }
 
+export enum GossipedInputType {
+  block = "block",
+  blob = "blob",
+}
+type GossipedBlockInput =
+  | {type: GossipedInputType.block; signedBlock: allForks.SignedBeaconBlock}
+  | {type: GossipedInputType.blob; signedBlob: deneb.SignedBlobSidecar};
+type BlockInputCacheType = {block?: allForks.SignedBeaconBlock; blobs: Map<number, deneb.BlobSidecar>};
+
 export const getBlockInput = {
+  blockInputCache: new Map<RootHex, BlockInputCacheType>(),
+
+  getFullBlockInput(config: ChainForkConfig, gossipedInput: GossipedBlockInput): BlockInput | null {
+    let blockHex;
+    let blockCache;
+    if (gossipedInput.type === GossipedInputType.block) {
+      const {signedBlock} = gossipedInput;
+      blockHex = toHexString(
+        config.getForkTypes(signedBlock.message.slot).BeaconBlock.hashTreeRoot(signedBlock.message)
+      );
+      blockCache = this.blockInputCache.get(blockHex) ?? {blobs: new Map<number, deneb.BlobSidecar>()};
+      blockCache.block = signedBlock;
+    } else {
+      const {signedBlob} = gossipedInput;
+      blockHex = toHexString(signedBlob.message.blockRoot);
+      blockCache = this.blockInputCache.get(blockHex) ?? {blobs: new Map<number, deneb.BlobSidecar>()};
+      // TODO: freetheblobs check if its the same blob or a duplicate and throw/take actions
+      blockCache.blobs.set(signedBlob.message.index, signedBlob.message);
+    }
+    this.blockInputCache.set(blockHex, blockCache);
+    const {block: signedBlock} = blockCache;
+    if (signedBlock !== undefined) {
+      const {blobKzgCommitments} = (signedBlock as deneb.SignedBeaconBlock).message.body;
+      if (blobKzgCommitments.length > blockCache.blobs.size) {
+        throw Error("Received more blobs than commitments");
+      }
+      if (blobKzgCommitments.length === blockCache.blobs.size) {
+        const blobSidecars = [];
+        for (let index = 0; index < blobKzgCommitments.length; index++) {
+          const blobSidecar = blockCache.blobs.get(index);
+          if (blobSidecar === undefined) {
+            throw Error("Missing blobSidecar");
+          }
+          blobSidecars.push(blobSidecar);
+        }
+        return getBlockInput.postDeneb(config, signedBlock, blobSidecars);
+      }
+    }
+    return null;
+  },
+
   preDeneb(config: ChainForkConfig, block: allForks.SignedBeaconBlock): BlockInput {
     if (config.getForkSeq(block.message.slot) >= ForkSeq.deneb) {
       throw Error(`Post Deneb block slot ${block.message.slot}`);

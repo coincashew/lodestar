@@ -4,7 +4,7 @@ import {ForkSeq, SLOTS_PER_HISTORICAL_ROOT} from "@lodestar/params";
 import {sleep} from "@lodestar/utils";
 import {deneb, allForks} from "@lodestar/types";
 import {fromHexString, toHexString} from "@chainsafe/ssz";
-import {getBlockInput} from "../../../../chain/blocks/types.js";
+import {getBlockInput, GossipedInputType} from "../../../../chain/blocks/types.js";
 import {promiseAllMaybeAsync} from "../../../../util/promises.js";
 import {isOptimisticBlock} from "../../../../util/forkChoice.js";
 import {BlockError, BlockErrorCode} from "../../../../chain/errors/index.js";
@@ -214,7 +214,27 @@ export function getBeaconBlockApi({
 
       // TODO: Validate block
       metrics?.registerBeaconBlock(OpSource.api, seenTimestampSec, signedBlock.message);
-      return network.gossip.publishBeaconBlock(signedBlock);
+      const blockForImport =
+        config.getForkSeq(signedBlock.message.slot) >= ForkSeq.deneb
+          ? getBlockInput.getFullBlockInput(config, {type: GossipedInputType.block, signedBlock})
+          : getBlockInput.preDeneb(config, signedBlock);
+
+      const publishPromises = [
+        // Send the block, regardless of whether or not it is valid. The API
+        // specification is very clear that this is the desired behaviour.
+        () => network.gossip.publishBeaconBlock(signedBlock),
+      ];
+      if (blockForImport !== null) {
+        publishPromises.push(() =>
+          chain.processBlock(blockForImport).catch((e) => {
+            if (e instanceof BlockError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
+              network.events.emit(NetworkEvent.unknownBlockParent, blockForImport, network.peerId.toString());
+            }
+            throw e;
+          })
+        );
+      }
+      await promiseAllMaybeAsync(publishPromises);
     },
 
     async publishBlob(signedBlob) {
@@ -228,7 +248,25 @@ export function getBeaconBlockApi({
         await sleep(msToBlockSlot);
       }
       metrics?.registerBlobSideCar(OpSource.api, seenTimestampSec, signedBlob.message);
-      return network.gossip.publishBlobSidecar(signedBlob);
+      const blockForImport = getBlockInput.getFullBlockInput(config, {type: GossipedInputType.blob, signedBlob});
+
+      const publishPromises = [
+        // Send the block, regardless of whether or not it is valid. The API
+        // specification is very clear that this is the desired behaviour.
+        () => network.gossip.publishBlobSidecar(signedBlob),
+      ];
+      if (blockForImport !== null) {
+        publishPromises.push(() =>
+          chain.processBlock(blockForImport).catch((e) => {
+            if (e instanceof BlockError && e.type.code === BlockErrorCode.PARENT_UNKNOWN) {
+              network.events.emit(NetworkEvent.unknownBlockParent, blockForImport, network.peerId.toString());
+            }
+            throw e;
+          })
+        );
+      }
+
+      await promiseAllMaybeAsync(publishPromises);
     },
 
     async getBlobSidecars(blockId) {
